@@ -101,7 +101,7 @@ export default function Sidebar() {
           >
             <div className="flex items-center gap-3">
               <span className="text-lg font-semibold hover:cursor-pointer text-foreground">
-                Destination KP
+                Rivals
               </span>
             </div>
           </Link>
@@ -113,7 +113,12 @@ export default function Sidebar() {
                   Overview
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="/dashboard" icon={Home} pathname={pathname} onNavigate={handleNavigation}>
+                  <NavItem
+                    href="/dashboard"
+                    icon={Home}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
                     Dashboard
                   </NavItem>
                 </div>
@@ -121,61 +126,78 @@ export default function Sidebar() {
 
               <div>
                 <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Content
+                  Competitors
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="/dashboard/events" icon={Calendar} pathname={pathname} onNavigate={handleNavigation}>
-                    Events
-                  </NavItem>
-                  <NavItem href="/dashboard/about" icon={FileText} pathname={pathname} onNavigate={handleNavigation}>
-                    About
-                  </NavItem>
-                  <div className="space-y-1">
-                    <NavItem href="/dashboard/todo" icon={CheckSquare} pathname={pathname} onNavigate={handleNavigation}>
-                      To do
-                    </NavItem>
-                  </div>
                   <NavItem
-                    href="/dashboard/contact-requests"
-                    icon={MessagesSquare}
+                    href="/dashboard/company/starbucks"
+                    icon={Building2}
                     pathname={pathname}
                     onNavigate={handleNavigation}
                   >
-                    Contact Requests
+                    Starbucks
                   </NavItem>
-                  <NavItem href="/dashboard/newsletter-subscribers" icon={Mail} pathname={pathname} onNavigate={handleNavigation}>
-                    Newsletter Subscribers
+                  <NavItem
+                    href="/dashboard/company/susa"
+                    icon={Building2}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
+                    Susa
                   </NavItem>
-                  <NavItem href="/dashboard/press" icon={Newspaper} pathname={pathname} onNavigate={handleNavigation}>
-                    Press
+                  <NavItem
+                    href="/dashboard/company/lasorda"
+                    icon={Building2}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
+                    La Sorda
+                  </NavItem>
+                  <NavItem
+                    href="/dashboard/company/dunkin"
+                    icon={Building2}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
+                    Dunkin'
+                  </NavItem>
+                  <NavItem
+                    href="/dashboard/company/costa"
+                    icon={Building2}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
+                    Costa Coffee
+                  </NavItem>
+                  <NavItem
+                    href="/dashboard/company/peets"
+                    icon={Building2}
+                    pathname={pathname}
+                    onNavigate={handleNavigation}
+                  >
+                    Peet's Coffee
                   </NavItem>
                 </div>
               </div>
-
-              <div>
-                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Business
-                </div>
-                <div className="space-y-1">
-                  <NavItem href="/dashboard/jobs" icon={Briefcase} pathname={pathname} onNavigate={handleNavigation}>
-                    Jobs
-                  </NavItem>
-                  <NavItem href="/dashboard/facilities" icon={Building} pathname={pathname} onNavigate={handleNavigation}>
-                    Facilities
-                  </NavItem>
-                </div>
-              </div>
-
-              {/* Team section intentionally removed (members, chat, meetings) */}
             </div>
           </div>
 
           <div className="px-4 py-4 border-t border-border">
             <div className="space-y-1">
-              <NavItem href="/dashboard/settings" icon={Settings} pathname={pathname} onNavigate={handleNavigation}>
+              <NavItem
+                href="/dashboard/settings"
+                icon={Settings}
+                pathname={pathname}
+                onNavigate={handleNavigation}
+              >
                 Settings
               </NavItem>
-              <NavItem href="/help" icon={HelpCircle} pathname={pathname} onNavigate={handleNavigation}>
+              <NavItem
+                href="/help"
+                icon={HelpCircle}
+                pathname={pathname}
+                onNavigate={handleNavigation}
+              >
                 Help
               </NavItem>
             </div>
