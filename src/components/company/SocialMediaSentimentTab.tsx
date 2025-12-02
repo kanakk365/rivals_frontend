@@ -31,6 +31,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { SocialMediaGrowthChart } from "./SocialMediaGrowthChart";
+import { SentimentDonutChart } from "./SentimentDonutChart";
 
 interface SocialMediaSentimentTabProps {
   companySlug: string;
@@ -88,51 +90,51 @@ const socialMediaData = {
   growthData: [
     {
       month: "Jan",
-      Instagram: 4800000,
-      Facebook: 3600000,
-      Twitter: 1900000,
-      LinkedIn: 850000,
-      YouTube: 380000,
+      Instagram: 4500000,
+      Facebook: 3200000,
+      Twitter: 2100000,
+      LinkedIn: 900000,
+      YouTube: 250000,
     },
     {
       month: "Feb",
-      Instagram: 4900000,
-      Facebook: 3650000,
-      Twitter: 1950000,
-      LinkedIn: 880000,
-      YouTube: 390000,
+      Instagram: 3800000,
+      Facebook: 3400000,
+      Twitter: 2800000,
+      LinkedIn: 950000,
+      YouTube: 450000,
     },
     {
       month: "Mar",
-      Instagram: 5000000,
-      Facebook: 3700000,
-      Twitter: 2000000,
-      LinkedIn: 920000,
+      Instagram: 5200000,
+      Facebook: 3300000,
+      Twitter: 1900000,
+      LinkedIn: 1100000,
       YouTube: 400000,
     },
     {
       month: "Apr",
-      Instagram: 5050000,
-      Facebook: 3720000,
-      Twitter: 2030000,
-      LinkedIn: 940000,
-      YouTube: 405000,
+      Instagram: 4900000,
+      Facebook: 3600000,
+      Twitter: 2400000,
+      LinkedIn: 1050000,
+      YouTube: 850000,
     },
     {
       month: "May",
-      Instagram: 5120000,
-      Facebook: 3760000,
-      Twitter: 2060000,
-      LinkedIn: 960000,
-      YouTube: 412000,
+      Instagram: 5600000,
+      Facebook: 3500000,
+      Twitter: 2200000,
+      LinkedIn: 1250000,
+      YouTube: 1400000,
     },
     {
       month: "Jun",
-      Instagram: 5200000,
-      Facebook: 3800000,
-      Twitter: 2100000,
-      LinkedIn: 980000,
-      YouTube: 420000,
+      Instagram: 5300000,
+      Facebook: 3900000,
+      Twitter: 3100000,
+      LinkedIn: 1300000,
+      YouTube: 1800000,
     },
   ],
   platformMetrics: {
@@ -188,9 +190,9 @@ const socialMediaData = {
         },
       ],
       sentiment: [
-        { name: "Positive", value: 68, color: "hsl(142, 76%, 36%)" },
-        { name: "Neutral", value: 24, color: "hsl(45, 93%, 47%)" },
-        { name: "Negative", value: 8, color: "hsl(0, 84%, 60%)" },
+        { name: "Positive", value: 68, color: "#64b5f6" },
+        { name: "Neutral", value: 24, color: "#a48fff" },
+        { name: "Negative", value: 8, color: "#ff79c6" },
       ],
       recentPosts: [
         {
@@ -277,9 +279,9 @@ const socialMediaData = {
         },
       ],
       sentiment: [
-        { name: "Positive", value: 62, color: "hsl(142, 76%, 36%)" },
-        { name: "Neutral", value: 28, color: "hsl(45, 93%, 47%)" },
-        { name: "Negative", value: 10, color: "hsl(0, 84%, 60%)" },
+        { name: "Positive", value: 62, color: "#64b5f6" },
+        { name: "Neutral", value: 28, color: "#a48fff" },
+        { name: "Negative", value: 10, color: "#ff79c6" },
       ],
       recentPosts: [
         {
@@ -356,9 +358,9 @@ const socialMediaData = {
         },
       ],
       sentiment: [
-        { name: "Positive", value: 58, color: "hsl(142, 76%, 36%)" },
-        { name: "Neutral", value: 32, color: "hsl(45, 93%, 47%)" },
-        { name: "Negative", value: 10, color: "hsl(0, 84%, 60%)" },
+        { name: "Positive", value: 58, color: "#64b5f6" },
+        { name: "Neutral", value: 32, color: "#a48fff" },
+        { name: "Negative", value: 10, color: "#ff79c6" },
       ],
       recentPosts: [
         {
@@ -435,9 +437,9 @@ const socialMediaData = {
         },
       ],
       sentiment: [
-        { name: "Positive", value: 75, color: "hsl(142, 76%, 36%)" },
-        { name: "Neutral", value: 20, color: "hsl(45, 93%, 47%)" },
-        { name: "Negative", value: 5, color: "hsl(0, 84%, 60%)" },
+        { name: "Positive", value: 75, color: "#64b5f6" },
+        { name: "Neutral", value: 20, color: "#a48fff" },
+        { name: "Negative", value: 5, color: "#ff79c6" },
       ],
       recentPosts: [
         {
@@ -505,9 +507,9 @@ const socialMediaData = {
         },
       ],
       sentiment: [
-        { name: "Positive", value: 72, color: "hsl(142, 76%, 36%)" },
-        { name: "Neutral", value: 22, color: "hsl(45, 93%, 47%)" },
-        { name: "Negative", value: 6, color: "hsl(0, 84%, 60%)" },
+        { name: "Positive", value: 72, color: "#64b5f6" },
+        { name: "Neutral", value: 22, color: "#a48fff" },
+        { name: "Negative", value: 6, color: "#ff79c6" },
       ],
       recentPosts: [
         {
@@ -682,63 +684,10 @@ export default function SocialMediaSentimentTab({
       </Card>
 
       {/* Social Media Growth Chart */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Social Media Growth</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Follower growth across platforms over the last 6 months
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={socialMediaData.growthData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="month"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickFormatter={(value) => formatNumber(value)}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => formatNumber(value)}
-              />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                iconType="line"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground">{value}</span>
-                )}
-              />
-              {socialMediaData.platforms.map((platform) => (
-                <Line
-                  key={platform.name}
-                  type="monotone"
-                  dataKey={platform.name}
-                  stroke={platform.color}
-                  strokeWidth={2}
-                  dot={{ fill: platform.color, r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <SocialMediaGrowthChart
+        data={socialMediaData.growthData}
+        platforms={socialMediaData.platforms}
+      />
 
       {/* Platform Selector */}
       <div className="flex flex-wrap gap-3">
@@ -761,131 +710,88 @@ export default function SocialMediaSentimentTab({
         })}
       </div>
 
-      {/* Platform-Specific Metrics */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">
-            {selectedPlatform} Performance
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Detailed engagement metrics for {selectedPlatform}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={currentPlatformData.posts}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="month"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickFormatter={(value) => formatNumber(value)}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => formatNumber(value)}
-              />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                iconType="rect"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground capitalize">
-                    {value}
-                  </span>
-                )}
-              />
-              <Bar
-                dataKey="posts"
-                fill="hsl(var(--chart-1))"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="likes"
-                fill="hsl(var(--chart-2))"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="shares"
-                fill="hsl(var(--chart-3))"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="comments"
-                fill="hsl(var(--chart-4))"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="saves"
-                fill="hsl(var(--chart-5))"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Platform-Specific Metrics - 2/3 width */}
+        <Card className="lg:col-span-2 rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">
+              {selectedPlatform} Performance
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Detailed engagement metrics for {selectedPlatform}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={currentPlatformData.posts}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="month"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickFormatter={(value) => formatNumber(value)}
+                />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "12px",
+                    padding: "12px",
+                  }}
+                  formatter={(value: number) => formatNumber(value)}
+                />
+                <Legend
+                  verticalAlign="top"
+                  height={36}
+                  iconType="rect"
+                  formatter={(value) => (
+                    <span className="text-sm text-foreground capitalize">
+                      {value}
+                    </span>
+                  )}
+                />
+                <Bar
+                  dataKey="posts"
+                  fill="hsl(var(--chart-1))"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="likes"
+                  fill="hsl(var(--chart-2))"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="shares"
+                  fill="hsl(var(--chart-3))"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="comments"
+                  fill="hsl(var(--chart-4))"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="saves"
+                  fill="hsl(var(--chart-5))"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-      {/* Platform-Specific Sentiment */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">
-            {selectedPlatform} Sentiment Analysis
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Customer sentiment breakdown for {selectedPlatform}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={currentPlatformData.sentiment}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}%`}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {currentPlatformData.sentiment.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => [`${value}%`, "Percentage"]}
-              />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                iconType="circle"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground">{value}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        {/* Platform-Specific Sentiment - 1/3 width */}
+        <SentimentDonutChart data={currentPlatformData.sentiment} />
+      </div>
 
       {/* Recent Posts */}
       <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">

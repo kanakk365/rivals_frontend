@@ -10,15 +10,8 @@ import {
   Briefcase,
   Activity,
 } from "lucide-react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ClippedAreaChart } from "./ClippedAreaChart";
+import { SentimentDonutChart } from "./SentimentDonutChart";
 
 interface OverviewTabProps {
   companySlug: string;
@@ -56,9 +49,9 @@ const getCompanyData = (slug: string) => ({
     { month: "Jun", users: 3700000 },
   ],
   sentiment: [
-    { name: "Positive", value: 65, color: "hsl(142, 76%, 36%)" },
-    { name: "Neutral", value: 25, color: "hsl(45, 93%, 47%)" },
-    { name: "Negative", value: 10, color: "hsl(0, 84%, 60%)" },
+    { name: "Positive", value: 65, color: "#64b5f6" },
+    { name: "Neutral", value: 25, color: "#a48fff" },
+    { name: "Negative", value: 10, color: "#ff79c6" },
   ],
 });
 
@@ -271,119 +264,15 @@ export default function OverviewTab({ companySlug }: OverviewTabProps) {
         </CardContent>
       </Card>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Users Chart */}
-        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Active Users Growth</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Monthly active users over the last 6 months
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={company.activeUsers}>
-                <defs>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0.3}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  opacity={0.3}
-                />
-                <XAxis
-                  dataKey="month"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <YAxis
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "12px",
-                    padding: "12px",
-                  }}
-                  formatter={(value: number) => [
-                    `${(value / 1000000).toFixed(2)}M users`,
-                    "Active Users",
-                  ]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorUsers)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* Charts Section - Active Users Growth */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Clipped Area Chart - 2/3 width */}
+        <div className="lg:col-span-2">
+          <ClippedAreaChart />
+        </div>
 
-        {/* Sentiment Pie Chart */}
-        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Overall Sentiment</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Customer sentiment analysis across all platforms
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={company.sentiment}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {company.sentiment.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "12px",
-                    padding: "12px",
-                  }}
-                  formatter={(value: number) => [`${value}%`, "Percentage"]}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  formatter={(value) => (
-                    <span className="text-sm text-foreground">{value}</span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Sentiment Donut Chart - 1/3 width */}
+        <SentimentDonutChart data={company.sentiment} />
       </div>
     </div>
   );
