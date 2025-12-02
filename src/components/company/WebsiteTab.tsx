@@ -25,6 +25,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { WebsiteTrafficChart } from "./WebsiteTrafficChart";
 
 interface WebsiteTabProps {
   companySlug: string;
@@ -78,12 +79,12 @@ const websiteAnalyticsData = {
     { source: "Paid Search", visitors: 600000, percentage: 4.8 },
   ],
   trafficTrend: [
-    { month: "Jan", visitors: 10200000, pageViews: 38400000, bounceRate: 45 },
-    { month: "Feb", visitors: 10800000, pageViews: 40200000, bounceRate: 44 },
-    { month: "Mar", visitors: 11200000, pageViews: 41800000, bounceRate: 43 },
-    { month: "Apr", visitors: 11600000, pageViews: 43200000, bounceRate: 43 },
-    { month: "May", visitors: 12100000, pageViews: 44500000, bounceRate: 42.5 },
-    { month: "Jun", visitors: 12500000, pageViews: 45600000, bounceRate: 42.5 },
+    { month: "Jan", visitors: 11200000, pageViews: 42500000, bounceRate: 45 },
+    { month: "Feb", visitors: 9800000, pageViews: 38200000, bounceRate: 44 },
+    { month: "Mar", visitors: 12800000, pageViews: 46800000, bounceRate: 43 },
+    { month: "Apr", visitors: 10500000, pageViews: 40200000, bounceRate: 43 },
+    { month: "May", visitors: 13500000, pageViews: 48500000, bounceRate: 42.5 },
+    { month: "Jun", visitors: 12200000, pageViews: 44600000, bounceRate: 42.5 },
   ],
   seoMetrics: {
     domainAuthority: 78,
@@ -259,96 +260,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
       </div>
 
       {/* Traffic Trend */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Traffic Trend</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Website traffic and engagement over the last 6 months
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={websiteAnalyticsData.trafficTrend}>
-              <defs>
-                <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-                <linearGradient id="colorPageViews" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--chart-2))"
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--chart-2))"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="month"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickFormatter={(value) => formatNumber(value)}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => formatNumber(value)}
-              />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                iconType="line"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground capitalize">
-                    {value.replace(/([A-Z])/g, " $1").trim()}
-                  </span>
-                )}
-              />
-              <Area
-                type="monotone"
-                dataKey="visitors"
-                stroke="hsl(var(--primary))"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorVisitors)"
-              />
-              <Area
-                type="monotone"
-                dataKey="pageViews"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorPageViews)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <WebsiteTrafficChart data={websiteAnalyticsData.trafficTrend} />
 
       {/* Top Keywords */}
       <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
@@ -536,6 +448,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                   width={120}
                 />
                 <Tooltip
+                  cursor={{ fill: "hsl(var(--muted)/0.2)" }}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",

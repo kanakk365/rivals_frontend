@@ -22,6 +22,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { SentimentDonutChart } from "./SentimentDonutChart";
 
 interface WebsiteSentimentTabProps {
   companySlug: string;
@@ -107,7 +108,7 @@ export default function WebsiteSentimentTab({
           websiteSentimentData.totalFeedback) *
         100
       ).toFixed(1),
-      color: "hsl(199, 89%, 48%)",
+      color: "#64b5f6",
     },
     {
       name: "Neutral",
@@ -117,7 +118,7 @@ export default function WebsiteSentimentTab({
           websiteSentimentData.totalFeedback) *
         100
       ).toFixed(1),
-      color: "hsl(271, 76%, 53%)",
+      color: "#a48fff",
     },
     {
       name: "Negative",
@@ -127,7 +128,7 @@ export default function WebsiteSentimentTab({
           websiteSentimentData.totalFeedback) *
         100
       ).toFixed(1),
-      color: "hsl(215, 20%, 65%)",
+      color: "#ff79c6",
     },
   ];
 
@@ -301,122 +302,80 @@ export default function WebsiteSentimentTab({
         </CardContent>
       </Card>
 
-      {/* Overall Sentiment Pie Chart */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">
-            Overall Sentiment Distribution
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Aggregate sentiment across all review platforms
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={sentimentData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percentage }) => `${name}: ${percentage}%`}
-                outerRadius={120}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {sentimentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => [formatNumber(value), "Reviews"]}
-              />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                iconType="circle"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground">{value}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* Feedback Topics & Overall Sentiment */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Feedback Topics & Themes - 2/3 width */}
+        <Card className="lg:col-span-2 rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">Feedback Topics & Themes</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Common themes mentioned in employee reviews
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={websiteSentimentData.feedbackTopics}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="topic"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickFormatter={(value) => formatNumber(value)}
+                />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "12px",
+                    padding: "12px",
+                  }}
+                  formatter={(value: number) => formatNumber(value)}
+                />
+                <Legend
+                  verticalAlign="top"
+                  height={36}
+                  iconType="rect"
+                  formatter={(value) => (
+                    <span className="text-sm text-foreground capitalize">
+                      {value}
+                    </span>
+                  )}
+                />
+                <Bar
+                  dataKey="positive"
+                  fill="#64b5f6"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="neutral"
+                  fill="#a48fff"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="negative"
+                  fill="#ff79c6"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
-      {/* Feedback Topics/Themes */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Feedback Topics & Themes</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Common themes mentioned in employee reviews
-          </p>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={websiteSentimentData.feedbackTopics}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.3}
-              />
-              <XAxis
-                dataKey="topic"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                angle={-45}
-                textAnchor="end"
-                height={100}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickFormatter={(value) => formatNumber(value)}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "12px",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => formatNumber(value)}
-              />
-              <Legend
-                verticalAlign="top"
-                height={36}
-                iconType="rect"
-                formatter={(value) => (
-                  <span className="text-sm text-foreground capitalize">
-                    {value}
-                  </span>
-                )}
-              />
-              <Bar
-                dataKey="positive"
-                fill="hsl(199, 89%, 48%)"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="neutral"
-                fill="hsl(271, 76%, 53%)"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="negative"
-                fill="hsl(215, 20%, 65%)"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        {/* Overall Sentiment Distribution - 1/3 width */}
+        <SentimentDonutChart data={sentimentData} />
+      </div>
 
       {/* Word Frequency by Sentiment */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
