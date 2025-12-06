@@ -12,9 +12,11 @@ import {
 } from "lucide-react";
 import { ClippedAreaChart } from "./ClippedAreaChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
+import { cn } from "@/lib/utils";
 
 interface OverviewTabProps {
   companySlug: string;
+  themeGradient?: string;
 }
 
 // Mock data - replace with actual API calls
@@ -55,19 +57,25 @@ const getCompanyData = (slug: string) => ({
   ],
 });
 
-export default function OverviewTab({ companySlug }: OverviewTabProps) {
+export default function OverviewTab({
+  companySlug,
+  themeGradient,
+}: OverviewTabProps) {
   const company = getCompanyData(companySlug);
 
   return (
     <div className="space-y-6">
-      {/* Company Info Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Info Card */}
         <Card className="lg:col-span-2 rounded-3xl border border-border/60 bg-gradient-to-br from-card via-card to-accent/5 shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-accent">
+                <div
+                  className={cn(
+                    "p-3 rounded-2xl bg-gradient-to-br",
+                    themeGradient || "from-primary to-accent"
+                  )}
+                >
                   <Building2 className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -109,7 +117,12 @@ export default function OverviewTab({ companySlug }: OverviewTabProps) {
         </Card>
 
         {/* Overall Score Card */}
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary via-primary to-accent text-white shadow-xl relative overflow-hidden">
+        <Card
+          className={cn(
+            "rounded-3xl border border-border/60 text-white shadow-xl relative overflow-hidden bg-gradient-to-br",
+            themeGradient || "from-primary via-primary to-accent"
+          )}
+        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.2),_transparent_60%)]" />
           <CardHeader className="relative">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-white/80">

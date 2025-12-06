@@ -13,11 +13,11 @@ import { useRouter } from "next/navigation"
 
 export function SignupForm() {
   const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
+    fullName: "",
     email: "",
+    phone: "",
     password: "",
-    termsAccepted: false,
+    acceptTerms: false,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -37,33 +37,45 @@ export function SignupForm() {
     setLoading(true)
     setError("")
     setSuccess("")
-    if (!formData.termsAccepted) {
+    if (!formData.acceptTerms) {
       setError("You must accept the terms and conditions.")
       setLoading(false)
       return
     }
 
     try {
-      const response = await fetch("https://auth.oneplace.io/auth/signup", {
+      const response = await fetch("http://44.222.232.195/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          first_name: formData.firstname,
-          last_name: formData.lastname,
+          accept_terms: formData.acceptTerms,
           email: formData.email,
+          full_name: formData.fullName,
           password: formData.password,
-          auth: "manual",
+          phone: formData.phone,
         }),
       })
-      if (!response.ok) {
+
+      if (response.status === 201) {
         const data = await response.json()
-        throw new Error(data.message || "Signup Failed")
+        setSuccess(data.message || "Signup successful!")
+        console.log("Signup successful")
+        router.push("/login")
+      } else if (response.status === 422) {
+        const errorData = await response.json()
+        // Handle validation errors
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const errorMessages = errorData.detail.map((err: any) => err.msg).join(", ")
+          setError(errorMessages || "Validation error. Please check your input.")
+        } else {
+          setError("Validation error. Please check your input.")
+        }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Signup Failed")
       }
-      setSuccess("Signup successful!")
-      console.log("Signup successful")
-      router.push("/login")
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred"
@@ -82,34 +94,20 @@ export function SignupForm() {
       </p>
 
       <form className="my-8" onSubmit={handleSubmit}>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-          <LabelInputContainer>
-            <Label htmlFor="firstname" className="text-white">
-              First name
-            </Label>
-            <Input
-              id="firstname"
-              placeholder="John"
-              type="text"
-              value={formData.firstname}
-              onChange={handleChange}
-              className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
-            />
-          </LabelInputContainer>
-          <LabelInputContainer>
-            <Label htmlFor="lastname" className="text-white">
-              Last name
-            </Label>
-            <Input
-              id="lastname"
-              placeholder="Doe"
-              type="text"
-              value={formData.lastname}
-              onChange={handleChange}
-              className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
-            />
-          </LabelInputContainer>
-        </div>
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="fullName" className="text-white">
+            Full name
+          </Label>
+          <Input
+            id="fullName"
+            placeholder="John Doe"
+            type="text"
+            value={formData.fullName}
+            onChange={handleChange}
+            className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
+            required
+          />
+        </LabelInputContainer>
 
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email" className="text-white">
@@ -122,6 +120,22 @@ export function SignupForm() {
             value={formData.email}
             onChange={handleChange}
             className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
+            required
+          />
+        </LabelInputContainer>
+
+        <LabelInputContainer className="mb-4">
+          <Label htmlFor="phone" className="text-white">
+            Phone
+          </Label>
+          <Input
+            id="phone"
+            placeholder="+1234567890"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
+            required
           />
         </LabelInputContainer>
 
@@ -136,20 +150,22 @@ export function SignupForm() {
             value={formData.password}
             onChange={handleChange}
             className="bg-gray-900 border-gray-700 text-white focus-visible:ring-purple-500"
+            required
+            minLength={8}
           />
         </LabelInputContainer>
 
         <div className="flex items-center space-x-2 mb-6">
           <Checkbox
-            id="termsAccepted"
-            checked={formData.termsAccepted}
+            id="acceptTerms"
+            checked={formData.acceptTerms}
             onCheckedChange={(checked: boolean) =>
-              setFormData((prev) => ({ ...prev, termsAccepted: checked }))
+              setFormData((prev) => ({ ...prev, acceptTerms: checked }))
             }
             className="border-gray-700 data-[state=checked]:bg-purple-600"
           />
           <label
-            htmlFor="terms"
+            htmlFor="acceptTerms"
             className="text-sm text-gray-400 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             I agree to the{" "}

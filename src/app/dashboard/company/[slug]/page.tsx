@@ -14,6 +14,14 @@ const tabs = [
   { id: "website", label: "Website" },
 ];
 
+const gradients = [
+  "from-cyan-400 via-sky-400 to-blue-400", // Blue/Sky
+  "from-indigo-400 via-purple-400 to-pink-400", // Indigo/Purple
+  "from-teal-400 via-cyan-400 to-sky-400", // Teal/Cyan
+  "from-blue-500 via-indigo-500 to-violet-500", // Deep Blue
+  "from-violet-500 via-purple-500 to-fuchsia-500", // Violet/Purple
+];
+
 export default function CompanyPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -24,6 +32,17 @@ export default function CompanyPage() {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+
+  // Select gradient based on slug
+  let themeGradient;
+  if (
+    slug.toLowerCase().includes("starkbucs") ||
+    slug.toLowerCase().includes("starbucks")
+  ) {
+    themeGradient = "from-[#bd5bf1] via-[#9b46e3] to-[#7a33e1]";
+  } else {
+    themeGradient = gradients[slug.length % gradients.length];
+  }
 
   return (
     <div className="space-y-6">
@@ -61,7 +80,9 @@ export default function CompanyPage() {
 
       {/* Tab Content */}
       <div className="pb-8">
-        {activeTab === "overview" && <OverviewTab companySlug={slug} />}
+        {activeTab === "overview" && (
+          <OverviewTab companySlug={slug} themeGradient={themeGradient} />
+        )}
         {activeTab === "social-media" && (
           <SocialMediaSentimentTab companySlug={slug} />
         )}

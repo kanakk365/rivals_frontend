@@ -1,3 +1,5 @@
+"use client";
+
 import {
   LogOut,
   MoveUpRight,
@@ -7,6 +9,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface MenuItem {
   label: string;
@@ -37,6 +42,60 @@ export default function Profile01({
   avatar = defaultProfile.avatar,
   subscription = defaultProfile.subscription,
 }: Partial<Profile01Props> = defaultProfile) {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        // If no token, just clear storage and redirect
+        localStorage.removeItem("token");
+        localStorage.removeItem("token_type");
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch("http://44.222.232.195/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+        toast.success(data.message || "Logged out successfully");
+      } else {
+        // Even if API call fails, clear local storage
+        toast.error("Error during logout, but you have been signed out locally");
+      }
+
+      // Remove tokens from storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("token_type");
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      toast.error(errorMessage || "An error occurred during logout");
+      console.error("Logout error:", error);
+
+      // Still clear storage and redirect even on error
+      localStorage.removeItem("token");
+      localStorage.removeItem("token_type");
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   const menuItems: MenuItem[] = [
     {
       label: "Subscription",
@@ -109,14 +168,17 @@ export default function Profile01({
 
             <button
               type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
               className="w-full flex items-center justify-between p-2 
                                 hover:bg-accent 
-                                rounded-lg transition-colors duration-200"
+                                rounded-lg transition-colors duration-200
+                                disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center gap-2">
                 <LogOut className="w-4 h-4" />
                 <span className="text-sm font-medium text-foreground">
-                  Logout
+                  {isLoggingOut ? "Logging out..." : "Logout"}
                 </span>
               </div>
             </button>

@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "outline" | "ghost"
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "outline" | "ghost";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -17,17 +18,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "bg-primary text-primary-foreground hover:bg-primary/90",
           variant === "outline" &&
             "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-          variant === "ghost" &&
-            "hover:bg-accent hover:text-accent-foreground",
+          variant === "ghost" && "hover:bg-accent hover:text-accent-foreground",
           className
         )}
         ref={ref}
         {...props}
       />
-    )
+    );
   }
-)
-Button.displayName = "Button"
+);
+Button.displayName = "Button";
 
-export { Button }
-
+export { Button };

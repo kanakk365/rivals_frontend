@@ -236,12 +236,12 @@ const Divider: React.FC = () => (
 );
 
 const SignupForm: React.FC = () => {
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
@@ -250,7 +250,7 @@ const SignupForm: React.FC = () => {
     e.preventDefault();
 
     // Basic validation
-    if (!firstname || !lastname || !email || !password) {
+    if (!fullName || !email || !phone || !password) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -265,7 +265,7 @@ const SignupForm: React.FC = () => {
       return;
     }
 
-    if (!termsAccepted) {
+    if (!acceptTerms) {
       toast.error("You must accept the terms and conditions");
       return;
     }
@@ -273,29 +273,37 @@ const SignupForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://auth.oneplace.io/auth/signup", {
+      const response = await fetch("http://44.222.232.195/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          first_name: firstname,
-          last_name: lastname,
+          accept_terms: acceptTerms,
           email: email,
+          full_name: fullName,
           password: password,
-          auth: "manual",
+          phone: phone,
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
+      if (response.status === 201) {
+        const data = await response.json();
+        toast.success(data.message || "Sign up successful!");
+        router.push("/login");
+      } else if (response.status === 422) {
+        const errorData = await response.json();
+        // Handle validation errors
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const errorMessages = errorData.detail.map((err: any) => err.msg).join(", ");
+          toast.error(errorMessages || "Validation error");
+        } else {
+          toast.error("Validation error. Please check your input.");
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Signup failed");
       }
-
-      // Handle successful sign up
-      toast.success("Sign up successful!");
-      router.push("/login");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An unknown error occurred";
@@ -308,54 +316,28 @@ const SignupForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-3 grid grid-cols-2 gap-3">
-        <div>
-          <label
-            htmlFor="firstname-input"
-            className="mb-1.5 block text-zinc-500 dark:text-zinc-400"
-          >
-            First name
-          </label>
-          <input
-            id="firstname-input"
-            type="text"
-            placeholder="John"
-            value={firstname}
-            onChange={(e) => setFirstname(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
+      <div className="mb-3">
+        <label
+          htmlFor="fullname-input"
+          className="mb-1.5 block text-zinc-500 dark:text-zinc-400"
+        >
+          Full name
+        </label>
+        <input
+          id="fullname-input"
+          type="text"
+          placeholder="John Doe"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
 
           bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-800 dark:text-zinc-200
 
           placeholder-zinc-400 dark:placeholder-zinc-500 
 
           ring-1 ring-transparent transition-shadow focus:outline-0 focus:ring-purple-700"
-            required
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="lastname-input"
-            className="mb-1.5 block text-zinc-500 dark:text-zinc-400"
-          >
-            Last name
-          </label>
-          <input
-            id="lastname-input"
-            type="text"
-            placeholder="Doe"
-            value={lastname}
-            onChange={(e) => setLastname(e.target.value)}
-            className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
-
-          bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-800 dark:text-zinc-200
-
-          placeholder-zinc-400 dark:placeholder-zinc-500 
-
-          ring-1 ring-transparent transition-shadow focus:outline-0 focus:ring-purple-700"
-            required
-          />
-        </div>
+          required
+        />
       </div>
 
       <div className="mb-3">
@@ -371,6 +353,30 @@ const SignupForm: React.FC = () => {
           placeholder="your.email@provider.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
+
+          bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-800 dark:text-zinc-200
+
+          placeholder-zinc-400 dark:placeholder-zinc-500 
+
+          ring-1 ring-transparent transition-shadow focus:outline-0 focus:ring-purple-700"
+          required
+        />
+      </div>
+
+      <div className="mb-3">
+        <label
+          htmlFor="phone-input"
+          className="mb-1.5 block text-zinc-500 dark:text-zinc-400"
+        >
+          Phone
+        </label>
+        <input
+          id="phone-input"
+          type="tel"
+          placeholder="+1234567890"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 
 
           bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-800 dark:text-zinc-200
@@ -420,8 +426,8 @@ const SignupForm: React.FC = () => {
         <input
           id="terms-checkbox"
           type="checkbox"
-          checked={termsAccepted}
-          onChange={(e) => setTermsAccepted(e.target.checked)}
+          checked={acceptTerms}
+          onChange={(e) => setAcceptTerms(e.target.checked)}
           className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 text-purple-600 focus:ring-purple-500 dark:bg-zinc-900"
         />
         <label

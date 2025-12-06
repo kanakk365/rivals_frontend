@@ -280,132 +280,52 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/auth/signin`, {
-
-      //   method: 'POST',
-
-      //   headers: {
-
-      //     'Content-Type': 'application/json',
-
-      //   },
-
-      //   body: JSON.stringify({
-
-      //     email,
-
-      //     password,
-
-      //     auth: "manual"
-
-      //   }),
-
-      // })
-
-      const response = await fetch("https://auth.oneplace.io/auth/signin", {
+      const response = await fetch("http://44.222.232.195/api/auth/signin", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           email,
-
           password,
-
-          auth: "manual",
         }),
       });
 
-      const data = await response.json();
+      if (response.status === 200) {
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Sign in failed");
-      }
+        // Handle successful sign in
+        toast.success(data.message || "Sign in successful!");
 
-      // Handle successful sign in
+        const accessToken = data.access_token;
+        const tokenType = data.token_type || "bearer";
 
-      toast.success("Sign in successful!");
+        // Store token if available
+        if (accessToken) {
+          localStorage.setItem("token", accessToken);
+          localStorage.setItem("token_type", tokenType);
 
-      const token = data.token;
-
-      const uuid = data.uuid;
-
-      const first_name = data.first_name;
-
-      const last_name = data.last_name;
-
-      // const token = "hubtechcentral_authfinal";
-
-      // Store token if available
-
-      if (token) {
-        // alert("Login successful")
-
-        localStorage.setItem("token", token);
-
-        // const cookieStore = await cookies();
-
-        // cookieStore.set('token', token, {
-
-        //   httpOnly: true,
-
-        //   sameSite: 'strict',
-
-        //   path: '/',
-
-        //   maxAge: 60 * 60 * 24,
-
-        // });
-
-        //   settoken(true);
-
-        //   // setSsotoken(token)
-
-        // const redirectPath = await setssoToken(token);
-
-        // setredirectpath(redirectPath);
-
-        const sendCredentials = await fetch(
-          "https://cpanel.rivalis.ai/data/profile",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json",
-
-              Authorization: `Bearer ${token}`,
-            },
-
-            body: JSON.stringify({
-              uuid,
-
-              first_name,
-
-              last_name,
-            }),
-          }
-        );
-
-        const datanew = sendCredentials.json();
-
-        if (!sendCredentials.ok) {
-          console.log("Error occured");
+          // Redirect to dashboard
+          router.push("/dashboard");
+        } else {
+          toast.error("No access token received");
         }
-
-        // router.push(redirectPath);
-
-        router.push("/dashboard");
+      } else if (response.status === 422) {
+        const errorData = await response.json();
+        // Handle validation errors
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const errorMessages = errorData.detail.map((err: any) => err.msg).join(", ");
+          toast.error(errorMessages || "Validation error. Please check your input.");
+        } else {
+          toast.error("Validation error. Please check your input.");
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Sign in failed");
       }
-
-      // // Redirect to dashboard or home page
-
-      // router.push('/dashboard')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast.error(errorMessage || "An error occurred during sign in");
-
       console.error("Sign in error:", error);
     } finally {
       setIsLoading(false);
