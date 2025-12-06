@@ -67,7 +67,14 @@ export function SignupForm() {
         const errorData = await response.json()
         // Handle validation errors
         if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errorMessages = errorData.detail.map((err: any) => err.msg).join(", ")
+          interface ValidationError {
+            loc: (string | number)[]
+            msg: string
+            type: string
+          }
+          const errorMessages = (errorData.detail as ValidationError[])
+            .map((err) => err.msg)
+            .join(", ")
           setError(errorMessages || "Validation error. Please check your input.")
         } else {
           setError("Validation error. Please check your input.")

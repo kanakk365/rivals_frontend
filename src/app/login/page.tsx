@@ -2,7 +2,7 @@
 
 import type * as React from "react";
 
-import { ChevronLeft, UserPlus, Eye, EyeOff, Fish } from "lucide-react";
+import { ChevronLeft, UserPlus, Eye, EyeOff } from "lucide-react";
 
 import { motion } from "motion/react";
 
@@ -314,7 +314,14 @@ const LoginForm: React.FC = () => {
         const errorData = await response.json();
         // Handle validation errors
         if (errorData.detail && Array.isArray(errorData.detail)) {
-          const errorMessages = errorData.detail.map((err: any) => err.msg).join(", ");
+          interface ValidationError {
+            loc: (string | number)[];
+            msg: string;
+            type: string;
+          }
+          const errorMessages = (errorData.detail as ValidationError[])
+            .map((err) => err.msg)
+            .join(", ");
           toast.error(errorMessages || "Validation error. Please check your input.");
         } else {
           toast.error("Validation error. Please check your input.");
