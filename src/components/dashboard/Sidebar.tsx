@@ -21,12 +21,14 @@ import {
   Building,
   FileText,
   Mail,
+  Plus,
 } from "lucide-react";
 
 import { Home } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import AddCompetitorModal from "./AddCompetitorModal";
 
 function NavItem({
   href,
@@ -52,16 +54,14 @@ function NavItem({
     <Link
       href={href}
       onClick={onNavigate}
-      className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors relative ${
-        isActive
-          ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-      }`}
+      className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors relative ${isActive
+        ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
+        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+        }`}
     >
       <Icon
-        className={`h-4 w-4 mr-3 flex-shrink-0 ${
-          isActive ? "text-primary" : ""
-        }`}
+        className={`h-4 w-4 mr-3 flex-shrink-0 ${isActive ? "text-primary" : ""
+          }`}
       />
       {children}
     </Link>
@@ -70,6 +70,7 @@ function NavItem({
 
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const pathname = usePathname();
 
   function handleNavigation() {
@@ -125,8 +126,19 @@ export default function Sidebar() {
               </div>
 
               <div>
-                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Competitors
+                <div className="px-3 mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Competitors
+                  </span>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="p-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white 
+                      hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-105 active:scale-95
+                      shadow-sm hover:shadow-md cursor-pointer"
+                    title="Add Competitor"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
                 </div>
                 <div className="space-y-1">
                   <NavItem
@@ -211,6 +223,12 @@ export default function Sidebar() {
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
+
+      {/* Add Competitor Modal */}
+      <AddCompetitorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </>
   );
 }

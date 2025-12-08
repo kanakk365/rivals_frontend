@@ -252,12 +252,6 @@ const LoginForm: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // const [istoken, settoken] = useState(false);
-
-  // const [ssotoken, setSsotoken] = useState("");
-
-  // const [redirectpath, setredirectpath] = useState("");
-
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -302,6 +296,7 @@ const LoginForm: React.FC = () => {
 
         // Store token if available
         if (accessToken) {
+          // Store in localStorage (for backward compatibility)
           localStorage.setItem("token", accessToken);
           localStorage.setItem("token_type", tokenType);
 

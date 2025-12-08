@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api-client";
 
 interface MenuItem {
   label: string;
@@ -59,17 +60,11 @@ export default function Profile01({
         return;
       }
 
-      const response = await fetch("http://44.222.232.195/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Use API client for logout
+      const response = await apiClient.post<{ message: string }>("/api/auth/logout");
 
-      if (response.status === 200) {
-        const data = await response.json();
-        toast.success(data.message || "Logged out successfully");
+      if (!response.error) {
+        toast.success(response.data?.message || "Logged out successfully");
       } else {
         // Even if API call fails, clear local storage
         toast.error("Error during logout, but you have been signed out locally");
