@@ -1,34 +1,20 @@
 "use client";
 
 import {
-  BarChart2,
-  Receipt,
   Building2,
-  CreditCard,
-  Folder,
-  Wallet,
-  Users2,
-  Shield,
-  MessagesSquare,
-  Video,
   Settings,
   HelpCircle,
   Menu,
-  Calendar,
-  CheckSquare,
-  Newspaper,
-  Briefcase,
-  Building,
-  FileText,
-  Mail,
   Plus,
+  Loader2,
 } from "lucide-react";
 
 import { Home } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import AddCompetitorModal from "./AddCompetitorModal";
+import { useCompaniesStore } from "@/store";
 
 function NavItem({
   href,
@@ -43,9 +29,6 @@ function NavItem({
   pathname: string;
   onNavigate: () => void;
 }) {
-  // Check if current pathname matches the href
-  // For exact matches or when pathname starts with href + "/" (for sub-routes)
-  // Special case: /dashboard should only match exactly /dashboard
   const isActive =
     pathname === href ||
     (href !== "/dashboard" && pathname.startsWith(href + "/"));
@@ -73,8 +56,18 @@ export default function Sidebar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const pathname = usePathname();
 
+  const { companies, isLoading, fetchCompanies } = useCompaniesStore();
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
+
   function handleNavigation() {
     setIsMobileMenuOpen(false);
+  }
+
+  function getCompanySlug(brandName: string): string {
+    return brandName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   }
 
   return (
@@ -141,54 +134,28 @@ export default function Sidebar() {
                   </button>
                 </div>
                 <div className="space-y-1">
-                  <NavItem
-                    href="/dashboard/company/starbucks"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    Starbucks
-                  </NavItem>
-                  <NavItem
-                    href="/dashboard/company/susa"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    Susa
-                  </NavItem>
-                  <NavItem
-                    href="/dashboard/company/lasorda"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    La Sorda
-                  </NavItem>
-                  <NavItem
-                    href="/dashboard/company/dunkin"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    Dunkin'
-                  </NavItem>
-                  <NavItem
-                    href="/dashboard/company/costa"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    Costa Coffee
-                  </NavItem>
-                  <NavItem
-                    href="/dashboard/company/peets"
-                    icon={Building2}
-                    pathname={pathname}
-                    onNavigate={handleNavigation}
-                  >
-                    Peet's Coffee
-                  </NavItem>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : companies.length === 0 ? (
+                    <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                      <p>No competitors yet.</p>
+                      <p className="text-xs mt-1">Click + to add one!</p>
+                    </div>
+                  ) : (
+                    companies.map((company) => (
+                      <NavItem
+                        key={company.id}
+                        href={`/dashboard/company/${getCompanySlug(company.brand_name)}`}
+                        icon={Building2}
+                        pathname={pathname}
+                        onNavigate={handleNavigation}
+                      >
+                        {company.brand_name}
+                      </NavItem>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -224,7 +191,6 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Add Competitor Modal */}
       <AddCompetitorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
