@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Building2,
@@ -9,25 +10,22 @@ import {
   DollarSign,
   Briefcase,
   Activity,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { ClippedAreaChart } from "./ClippedAreaChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
 import { cn } from "@/lib/utils";
+import { useCompanyDataStore } from "@/store/companyDataStore";
+import { useCompaniesStore } from "@/store/companiesStore";
 
 interface OverviewTabProps {
   companySlug: string;
   themeGradient?: string;
 }
 
-// Mock data - replace with actual API calls
-const getCompanyData = (slug: string) => ({
-  name: slug.charAt(0).toUpperCase() + slug.slice(1),
-  industry: "Food & Beverage",
-  size: "Large Enterprise (10,000+ employees)",
-  location: "Seattle, Washington, USA",
-  description:
-    "A global coffeehouse chain known for premium coffee and beverages. Leading the market with innovative products and strong brand presence across multiple countries.",
-  overallScore: 8.7,
+// Fallback data for sections not covered by API
+const getFallbackData = () => ({
   funding: {
     totalRounds: 12,
     latestRaised: "$500M",
@@ -42,14 +40,6 @@ const getCompanyData = (slug: string) => ({
     growthRate: 15.3,
     topRoles: ["Barista", "Store Manager", "Software Engineer"],
   },
-  activeUsers: [
-    { month: "Jan", users: 2400000 },
-    { month: "Feb", users: 2600000 },
-    { month: "Mar", users: 2800000 },
-    { month: "Apr", users: 3100000 },
-    { month: "May", users: 3400000 },
-    { month: "Jun", users: 3700000 },
-  ],
   sentiment: [
     { name: "Positive", value: 65, color: "#64b5f6" },
     { name: "Neutral", value: 25, color: "#a48fff" },
@@ -61,7 +51,77 @@ export default function OverviewTab({
   companySlug,
   themeGradient,
 }: OverviewTabProps) {
-  const company = getCompanyData(companySlug);
+  const { companyData, isLoading, error, fetchCompanyData, clearCompanyData } =
+    useCompanyDataStore();
+  const { companies } = useCompaniesStore();
+  const fallbackData = getFallbackData();
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  useEffect(() => {
+    const matchingCompany = companies.find(
+      (c) =>
+        c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
+        companySlug.toLowerCase() ||
+        c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+    );
+
+    if (matchingCompany) {
+      fetchCompanyData(matchingCompany.domain, 1, matchingCompany.brand_name);
+    } else {
+      const domain = `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
+      const name = companySlug
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      fetchCompanyData(domain, 1, name);
+    }
+
+    return () => {
+      clearCompanyData();
+    };
+  }, [companySlug, companies, fetchCompanyData, clearCompanyData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading company data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <p className="text-destructive font-medium">
+            Failed to load company data
+          </p>
+          <p className="text-muted-foreground text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const displayData = {
+    name:
+      companyData?.company_name ||
+      companySlug
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+    industry: companyData?.industry || "Not available",
+    size: companyData?.size || "Not available",
+    location: companyData?.headquarters || "Not available",
+    description: companyData?.description || "No description available.",
+    logoUrl: companyData?.logo_url || null,
+    tradingStatus: companyData?.trading_status || "Unknown",
+    overallScore: companyData?.score ? companyData.score / 10 : 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -70,29 +130,59 @@ export default function OverviewTab({
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div
-                  className={cn(
-                    "p-3 rounded-2xl bg-gradient-to-br",
-                    themeGradient || "from-primary to-accent"
-                  )}
-                >
-                  <Building2 className="h-8 w-8 text-white" />
-                </div>
+                {displayData.logoUrl ? (
+                  <img
+                    src={displayData.logoUrl}
+                    alt={displayData.name}
+                    className="h-14 w-14 rounded-2xl object-cover"
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "p-3 rounded-2xl bg-gradient-to-br",
+                      themeGradient || "from-primary to-accent"
+                    )}
+                  >
+                    <Building2 className="h-8 w-8 text-white" />
+                  </div>
+                )}
                 <div>
                   <CardTitle className="text-2xl font-bold">
-                    {company.name}
+                    {displayData.name}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {company.industry}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      {displayData.industry}
+                    </p>
+                    {displayData.tradingStatus && displayData.tradingStatus !== "Unknown" && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">
+                        {displayData.tradingStatus}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-foreground/90 leading-relaxed">
-              {company.description}
-            </p>
+            <div>
+              <p
+                className={cn(
+                  "text-sm text-foreground/90 leading-relaxed",
+                  !isDescriptionExpanded && "line-clamp-2"
+                )}
+              >
+                {displayData.description}
+              </p>
+              {displayData.description.length > 150 && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="text-sm text-primary hover:text-primary/80 font-medium mt-1 transition-colors"
+                >
+                  {isDescriptionExpanded ? "Show less" : "More"}
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/10 border border-border/40">
                 <Users className="h-5 w-5 text-primary" />
@@ -100,7 +190,7 @@ export default function OverviewTab({
                   <p className="text-xs text-muted-foreground font-medium">
                     Company Size
                   </p>
-                  <p className="text-sm font-semibold">{company.size}</p>
+                  <p className="text-sm font-semibold">{displayData.size}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/10 border border-border/40">
@@ -109,14 +199,13 @@ export default function OverviewTab({
                   <p className="text-xs text-muted-foreground font-medium">
                     Headquarters
                   </p>
-                  <p className="text-sm font-semibold">{company.location}</p>
+                  <p className="text-sm font-semibold">{displayData.location}</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Overall Score Card */}
         <Card
           className={cn(
             "rounded-3xl border border-border/60 text-white shadow-xl relative overflow-hidden bg-gradient-to-br",
@@ -132,13 +221,13 @@ export default function OverviewTab({
           <CardContent className="relative">
             <div className="flex flex-col items-center justify-center py-6">
               <div className="text-7xl font-bold mb-2">
-                {company.overallScore}
+                {displayData.overallScore.toFixed(1)}
               </div>
               <div className="text-sm text-white/80">out of 10</div>
               <div className="mt-6 w-full bg-white/20 rounded-full h-2">
                 <div
                   className="bg-white rounded-full h-2 transition-all duration-500"
-                  style={{ width: `${company.overallScore * 10}%` }}
+                  style={{ width: `${displayData.overallScore * 10}%` }}
                 />
               </div>
               <p className="text-xs text-white/70 mt-4 text-center">
@@ -149,7 +238,6 @@ export default function OverviewTab({
         </Card>
       </div>
 
-      {/* Funding & Valuation */}
       <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -166,7 +254,7 @@ export default function OverviewTab({
                 Total Rounds
               </p>
               <p className="text-2xl font-bold text-foreground">
-                {company.funding.totalRounds}
+                {fallbackData.funding.totalRounds}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -174,7 +262,7 @@ export default function OverviewTab({
                 Latest Raised
               </p>
               <p className="text-2xl font-bold text-foreground">
-                {company.funding.latestRaised}
+                {fallbackData.funding.latestRaised}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -182,7 +270,7 @@ export default function OverviewTab({
                 Total Funding
               </p>
               <p className="text-2xl font-bold text-foreground">
-                {company.funding.totalFunding}
+                {fallbackData.funding.totalFunding}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -190,7 +278,7 @@ export default function OverviewTab({
                 Last Round
               </p>
               <p className="text-sm font-bold text-foreground">
-                {company.funding.lastRoundDate}
+                {fallbackData.funding.lastRoundDate}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -198,7 +286,7 @@ export default function OverviewTab({
                 Lead Investor
               </p>
               <p className="text-sm font-bold text-foreground">
-                {company.funding.leadInvestor}
+                {fallbackData.funding.leadInvestor}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
@@ -206,14 +294,13 @@ export default function OverviewTab({
                 Valuation
               </p>
               <p className="text-2xl font-bold text-primary">
-                {company.funding.valuation}
+                {fallbackData.funding.valuation}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Hiring Data */}
       <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -233,7 +320,7 @@ export default function OverviewTab({
                 </p>
               </div>
               <p className="text-3xl font-bold text-foreground">
-                {company.hiring.activeJobs}
+                {fallbackData.hiring.activeJobs}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -244,7 +331,7 @@ export default function OverviewTab({
                 </p>
               </div>
               <p className="text-3xl font-bold text-foreground">
-                {company.hiring.recentHires.toLocaleString()}
+                {fallbackData.hiring.recentHires.toLocaleString()}
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -255,7 +342,7 @@ export default function OverviewTab({
                 </p>
               </div>
               <p className="text-3xl font-bold text-foreground">
-                {company.hiring.growthRate}%
+                {fallbackData.hiring.growthRate}%
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
@@ -263,7 +350,7 @@ export default function OverviewTab({
                 Top Roles
               </p>
               <div className="space-y-1">
-                {company.hiring.topRoles.map((role, index) => (
+                {fallbackData.hiring.topRoles.map((role, index) => (
                   <div
                     key={index}
                     className="text-xs font-medium text-foreground bg-background/50 px-2 py-1 rounded"
@@ -277,15 +364,11 @@ export default function OverviewTab({
         </CardContent>
       </Card>
 
-      {/* Charts Section - Active Users Growth */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Clipped Area Chart - 2/3 width */}
         <div className="lg:col-span-2">
           <ClippedAreaChart />
         </div>
-
-        {/* Sentiment Donut Chart - 1/3 width */}
-        <SentimentDonutChart data={company.sentiment} />
+        <SentimentDonutChart data={fallbackData.sentiment} />
       </div>
     </div>
   );
