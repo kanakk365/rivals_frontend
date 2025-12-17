@@ -5,3 +5,11 @@ export {
   useCompanyDataStore,
   type CompanyOverviewData,
 } from "./companyDataStore";
+export {
+  useSocialMediaStore,
+  type InstagramData,
+  type TwitterData,
+  type YouTubeData,
+  type FacebookData,
+  type LinkedInData,
+} from "./socialMediaStore";

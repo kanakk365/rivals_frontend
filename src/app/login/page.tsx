@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ForceDarkMode } from "@/components/providers/force-dark-mode";
+import { apiClient } from "@/lib/api-client";
 
 // import SSOSync from "../SsoSync";
 
@@ -274,20 +275,16 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://44.222.232.195/api/auth/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const { data, error, status } = await apiClient.post<{
+        message?: string;
+        access_token?: string;
+        token_type?: string;
+      }>("/api/auth/signin", {
+        email,
+        password,
+      }, { requiresAuth: false });
 
-      if (response.status === 200) {
-        const data = await response.json();
-
+      if (status === 200 && data) {
         // Handle successful sign in
         toast.success(data.message || "Sign in successful!");
 
@@ -305,25 +302,8 @@ const LoginForm: React.FC = () => {
         } else {
           toast.error("No access token received");
         }
-      } else if (response.status === 422) {
-        const errorData = await response.json();
-        // Handle validation errors
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          interface ValidationError {
-            loc: (string | number)[];
-            msg: string;
-            type: string;
-          }
-          const errorMessages = (errorData.detail as ValidationError[])
-            .map((err) => err.msg)
-            .join(", ");
-          toast.error(errorMessages || "Validation error. Please check your input.");
-        } else {
-          toast.error("Validation error. Please check your input.");
-        }
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Sign in failed");
+        toast.error(error || "Sign in failed");
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

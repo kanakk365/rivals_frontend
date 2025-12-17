@@ -10,6 +10,7 @@ import Link from "next/link"
 import { ArrowRight, Mail } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { apiClient } from "@/lib/api-client"
 
 export function SignupForm() {
   const [formData, setFormData] = useState({
@@ -44,44 +45,20 @@ export function SignupForm() {
     }
 
     try {
-      const response = await fetch("http://44.222.232.195/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accept_terms: formData.acceptTerms,
-          email: formData.email,
-          full_name: formData.fullName,
-          password: formData.password,
-          phone: formData.phone,
-        }),
-      })
+      const { data, error, status } = await apiClient.post<{ message: string }>("/api/auth/signup", {
+        accept_terms: formData.acceptTerms,
+        email: formData.email,
+        full_name: formData.fullName,
+        password: formData.password,
+        phone: formData.phone,
+      }, { requiresAuth: false })
 
-      if (response.status === 201) {
-        const data = await response.json()
-        setSuccess(data.message || "Signup successful!")
+      if (status === 201 || status === 200) {
+        setSuccess(data?.message || "Signup successful!")
         console.log("Signup successful")
         router.push("/login")
-      } else if (response.status === 422) {
-        const errorData = await response.json()
-        // Handle validation errors
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          interface ValidationError {
-            loc: (string | number)[]
-            msg: string
-            type: string
-          }
-          const errorMessages = (errorData.detail as ValidationError[])
-            .map((err) => err.msg)
-            .join(", ")
-          setError(errorMessages || "Validation error. Please check your input.")
-        } else {
-          setError("Validation error. Please check your input.")
-        }
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Signup Failed")
+        setError(error || "Signup Failed")
       }
     } catch (err: unknown) {
       const errorMessage =

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Users,
@@ -15,6 +15,9 @@ import {
   Heart,
   Share2,
   Bookmark,
+  Loader2,
+  CheckCircle,
+  ExternalLink,
 } from "lucide-react";
 import {
   BarChart,
@@ -33,6 +36,8 @@ import {
 } from "recharts";
 import { SocialMediaGrowthChart } from "./SocialMediaGrowthChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
+import { useSocialMediaStore } from "@/store/socialMediaStore";
+import { useCompaniesStore } from "@/store/companiesStore";
 
 interface SocialMediaSentimentTabProps {
   companySlug: string;
@@ -532,15 +537,123 @@ export default function SocialMediaSentimentTab({
 }: SocialMediaSentimentTabProps) {
   const [selectedPlatform, setSelectedPlatform] = useState("Instagram");
 
+  const {
+    instagramData,
+    youtubeData,
+    facebookData,
+    linkedinData,
+    isLoading,
+    fetchAllSocialData,
+    clearSocialMediaData,
+  } = useSocialMediaStore();
+
+  const { companies } = useCompaniesStore();
+
+  useEffect(() => {
+    const matchingCompany = companies.find(
+      (c) =>
+        c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
+        companySlug.toLowerCase() ||
+        c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+    );
+
+    if (matchingCompany) {
+      fetchAllSocialData(matchingCompany.domain, matchingCompany.brand_name);
+    } else {
+      const domain = `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
+      const name = companySlug
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      fetchAllSocialData(domain, name);
+    }
+
+    return () => {
+      clearSocialMediaData();
+    };
+  }, [companySlug, companies, fetchAllSocialData, clearSocialMediaData]);
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
+  const parseFollowers = (str: string | number | null | undefined): number => {
+    if (!str) return 0;
+    if (typeof str === 'number') return str;
+    const stringValue = String(str);
+    const num = parseFloat(stringValue.replace(/[^0-9.]/g, ""));
+    if (stringValue.includes("M")) return num * 1000000;
+    if (stringValue.includes("K")) return num * 1000;
+    return num || 0;
+  };
+
+  // Build dynamic platform data from API
+  const dynamicPlatforms = [
+    {
+      name: "Instagram",
+      icon: Instagram,
+      followers: instagramData?.followersCount || socialMediaData.platforms[0].followers,
+      totalPosts: instagramData?.postsCount || socialMediaData.platforms[0].totalPosts,
+      growth: 12.5,
+      color: "hsl(330, 80%, 50%)",
+      verified: instagramData?.isVerified || false,
+      profileUrl: instagramData?.profileUrl || "",
+      activityLevel: instagramData?.activityLevel || "",
+    },
+    {
+      name: "Facebook",
+      icon: Facebook,
+      followers: facebookData ? parseFollowers(facebookData.followers) : socialMediaData.platforms[1].followers,
+      totalPosts: socialMediaData.platforms[1].totalPosts,
+      growth: 8.3,
+      color: "hsl(221, 44%, 41%)",
+      verified: facebookData?.verified || false,
+      profileUrl: facebookData?.url || "",
+      category: facebookData?.category || "",
+    },
+    {
+      name: "Twitter",
+      icon: Twitter,
+      followers: socialMediaData.platforms[2].followers,
+      totalPosts: socialMediaData.platforms[2].totalPosts,
+      growth: 15.7,
+      color: "hsl(203, 89%, 53%)",
+      verified: false,
+      profileUrl: "",
+    },
+    {
+      name: "LinkedIn",
+      icon: Linkedin,
+      followers: linkedinData?.followerCount || socialMediaData.platforms[3].followers,
+      totalPosts: socialMediaData.platforms[3].totalPosts,
+      growth: 22.1,
+      color: "hsl(201, 100%, 35%)",
+      verified: false,
+      profileUrl: linkedinData?.url || "",
+      employeeCount: linkedinData?.employeeCount || 0,
+    },
+    {
+      name: "YouTube",
+      icon: Youtube,
+      followers: youtubeData?.statistics ? parseInt(youtubeData.statistics.subscriberCount) : socialMediaData.platforms[4].followers,
+      totalPosts: youtubeData?.statistics?.totalPosts || socialMediaData.platforms[4].totalPosts,
+      growth: 18.9,
+      color: "hsl(0, 100%, 50%)",
+      verified: false,
+      profileUrl: youtubeData?.url || "",
+      viewCount: youtubeData?.statistics?.viewCount || "0",
+    },
+  ];
+
+  // Calculate total followers from API data
+  const totalFollowers = dynamicPlatforms.reduce((sum, p) => sum + p.followers, 0);
+
   const currentPlatformData =
     socialMediaData.platformMetrics[
-      selectedPlatform as keyof typeof socialMediaData.platformMetrics
+    selectedPlatform as keyof typeof socialMediaData.platformMetrics
     ];
 
   return (
@@ -560,7 +673,7 @@ export default function SocialMediaSentimentTab({
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-foreground">
-              {formatNumber(socialMediaData.overview.totalFollowers)}
+              {formatNumber(totalFollowers)}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
               Across all platforms
@@ -639,7 +752,7 @@ export default function SocialMediaSentimentTab({
                 </tr>
               </thead>
               <tbody>
-                {socialMediaData.platforms.map((platform) => {
+                {dynamicPlatforms.map((platform) => {
                   const Icon = platform.icon;
                   return (
                     <tr
@@ -657,9 +770,24 @@ export default function SocialMediaSentimentTab({
                               style={{ color: platform.color }}
                             />
                           </div>
-                          <span className="font-semibold text-foreground">
-                            {platform.name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground">
+                              {platform.name}
+                            </span>
+                            {platform.verified && (
+                              <CheckCircle className="h-4 w-4 text-blue-500" />
+                            )}
+                            {platform.profileUrl && (
+                              <a
+                                href={platform.profileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-muted-foreground hover:text-primary"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right font-semibold text-foreground">
@@ -691,20 +819,22 @@ export default function SocialMediaSentimentTab({
 
       {/* Platform Selector */}
       <div className="flex flex-wrap gap-3">
-        {socialMediaData.platforms.map((platform) => {
+        {dynamicPlatforms.map((platform) => {
           const Icon = platform.icon;
           return (
             <button
               key={platform.name}
               onClick={() => setSelectedPlatform(platform.name)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
-                selectedPlatform === platform.name
-                  ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
-                  : "bg-card border border-border/60 text-foreground hover:border-primary/50"
-              }`}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${selectedPlatform === platform.name
+                ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
+                : "bg-card border border-border/60 text-foreground hover:border-primary/50"
+                }`}
             >
               <Icon className="h-5 w-5" />
               {platform.name}
+              {platform.verified && (
+                <CheckCircle className="h-4 w-4" />
+              )}
             </button>
           );
         })}

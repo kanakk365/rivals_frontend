@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ForceDarkMode } from "@/components/providers/force-dark-mode";
+import { apiClient } from "@/lib/api-client";
 
 const GridAuth: React.FC = () => {
   return (
@@ -273,43 +274,19 @@ const SignupForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://44.222.232.195/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accept_terms: acceptTerms,
-          email: email,
-          full_name: fullName,
-          password: password,
-          phone: phone,
-        }),
-      });
+      const { data, error, status } = await apiClient.post<{ message: string }>("/api/auth/signup", {
+        accept_terms: acceptTerms,
+        email: email,
+        full_name: fullName,
+        password: password,
+        phone: phone,
+      }, { requiresAuth: false });
 
-      if (response.status === 201) {
-        const data = await response.json();
+      if ((status === 201 || status === 200) && data) {
         toast.success(data.message || "Sign up successful!");
         router.push("/login");
-      } else if (response.status === 422) {
-        const errorData = await response.json();
-        // Handle validation errors
-        if (errorData.detail && Array.isArray(errorData.detail)) {
-          interface ValidationError {
-            loc: (string | number)[];
-            msg: string;
-            type: string;
-          }
-          const errorMessages = (errorData.detail as ValidationError[])
-            .map((err) => err.msg)
-            .join(", ");
-          toast.error(errorMessages || "Validation error");
-        } else {
-          toast.error("Validation error. Please check your input.");
-        }
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Signup failed");
+        toast.error(error || "Signup failed");
       }
     } catch (error: unknown) {
       const errorMessage =

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://44.222.232.195";
+const API_BASE_URL = "https://api.rivalis.ai";
 
 interface RequestConfig extends RequestInit {
   requiresAuth?: boolean;
