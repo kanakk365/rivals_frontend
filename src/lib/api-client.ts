@@ -68,12 +68,16 @@ class ApiClient {
         headers: requestHeaders,
       });
 
-      // Handle 401 Unauthorized
+
       if (response.status === 401) {
-        this.handleUnauthorized();
+
+        if (requiresAuth) {
+          this.handleUnauthorized();
+        }
+        const errorData = await response.json().catch(() => ({}));
         return {
           data: null,
-          error: "Unauthorized",
+          error: errorData.message || errorData.detail || "Invalid credentials",
           status: 401,
         };
       }

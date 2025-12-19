@@ -36,8 +36,17 @@ import {
 } from "recharts";
 import { SocialMediaGrowthChart } from "./SocialMediaGrowthChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
-import { useSocialMediaStore } from "@/store/socialMediaStore";
+import { useSocialMediaStore, SocialPost } from "@/store/socialMediaStore";
 import { useCompaniesStore } from "@/store/companiesStore";
+
+// Platform to job_id mapping for social posts API
+const platformJobIdMap: Record<string, number> = {
+  Instagram: 7,
+  Twitter: 8,
+  YouTube: 9,
+  Facebook: 10,
+  LinkedIn: 11,
+};
 
 interface SocialMediaSentimentTabProps {
   companySlug: string;
@@ -545,6 +554,20 @@ export default function SocialMediaSentimentTab({
     isLoading,
     fetchAllSocialData,
     clearSocialMediaData,
+    // Platform metrics from the new API
+    instagramMetrics,
+    twitterMetrics,
+    youtubeMetrics,
+    facebookMetrics,
+    linkedinMetrics,
+    metricsLoading,
+    // Overall sentiment from review APIs (Reddit, Trustpilot, Google Reviews)
+    overallSentiment,
+    sentimentLoading,
+    // Social posts list
+    socialPosts,
+    socialPostsLoading,
+    fetchSocialPosts,
   } = useSocialMediaStore();
 
   const { companies } = useCompaniesStore();
@@ -574,6 +597,26 @@ export default function SocialMediaSentimentTab({
     };
   }, [companySlug, companies, fetchAllSocialData, clearSocialMediaData]);
 
+  // Fetch social posts when selectedPlatform changes
+  useEffect(() => {
+    const matchingCompany = companies.find(
+      (c) =>
+        c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
+        companySlug.toLowerCase() ||
+        c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+    );
+
+    const domain = matchingCompany
+      ? matchingCompany.domain
+      : `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
+
+    const jobId = platformJobIdMap[selectedPlatform];
+    if (jobId) {
+      fetchSocialPosts(domain, jobId, 6, 0);
+    }
+  }, [selectedPlatform, companySlug, companies, fetchSocialPosts]);
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -590,7 +633,6 @@ export default function SocialMediaSentimentTab({
     return num || 0;
   };
 
-  // Build dynamic platform data from API
   const dynamicPlatforms = [
     {
       name: "Instagram",
@@ -656,6 +698,118 @@ export default function SocialMediaSentimentTab({
     selectedPlatform as keyof typeof socialMediaData.platformMetrics
     ];
 
+  // Get the metrics for the currently selected platform from API
+  const getCurrentPlatformMetrics = () => {
+    switch (selectedPlatform) {
+      case "Instagram":
+        return instagramMetrics;
+      case "Twitter":
+        return twitterMetrics;
+      case "YouTube":
+        return youtubeMetrics;
+      case "Facebook":
+        return facebookMetrics;
+      case "LinkedIn":
+        return linkedinMetrics;
+      default:
+        return null;
+    }
+  };
+
+  const currentMetrics = getCurrentPlatformMetrics();
+
+  // Generate bar chart data from API metrics - showing all platforms together
+  const getAllPlatformsChartData = () => {
+    // Check if we have any metrics data
+    const hasAnyMetrics = instagramMetrics || twitterMetrics || youtubeMetrics || facebookMetrics || linkedinMetrics;
+
+    if (!hasAnyMetrics) {
+      return null;
+    }
+
+    // Create data for all platforms
+    return [
+      {
+        platform: "Instagram",
+        likes: instagramMetrics?.likesCount || 0,
+        comments: instagramMetrics?.commentsCount || 0,
+        views: instagramMetrics?.videoViewCount || 0,
+        engagement: instagramMetrics?.totalEngagement || 0,
+      },
+      {
+        platform: "Twitter",
+        likes: twitterMetrics?.likesCount || 0,
+        comments: twitterMetrics?.commentsCount || 0,
+        views: twitterMetrics?.videoViewCount || 0,
+        engagement: twitterMetrics?.totalEngagement || 0,
+      },
+      {
+        platform: "YouTube",
+        likes: youtubeMetrics?.likesCount || 0,
+        comments: youtubeMetrics?.commentsCount || 0,
+        views: youtubeMetrics?.videoViewCount || 0,
+        engagement: youtubeMetrics?.totalEngagement || 0,
+      },
+      {
+        platform: "Facebook",
+        likes: facebookMetrics?.likesCount || 0,
+        comments: facebookMetrics?.commentsCount || 0,
+        shares: facebookMetrics?.sharesCount || 0,
+        views: facebookMetrics?.videoViewCount || 0,
+        engagement: facebookMetrics?.totalEngagement || 0,
+      },
+      {
+        platform: "LinkedIn",
+        likes: linkedinMetrics?.likesCount || 0,
+        comments: linkedinMetrics?.commentsCount || 0,
+        views: linkedinMetrics?.videoViewCount || 0,
+        engagement: linkedinMetrics?.totalEngagement || 0,
+      },
+    ];
+  };
+
+  const allPlatformsChartData = getAllPlatformsChartData();
+
+  // Calculate aggregated metrics from all platforms
+  const allPlatformMetrics = [
+    instagramMetrics,
+    twitterMetrics,
+    youtubeMetrics,
+    facebookMetrics,
+    linkedinMetrics,
+  ].filter(Boolean);
+
+  const totalEngagement = allPlatformMetrics.reduce(
+    (sum, m) => sum + (m?.totalEngagement || 0),
+    0
+  );
+
+  const totalVideoViews = allPlatformMetrics.reduce(
+    (sum, m) => sum + (m?.videoViewCount || 0),
+    0
+  );
+
+  const averageEngagementRate =
+    allPlatformMetrics.length > 0
+      ? allPlatformMetrics.reduce((sum, m) => sum + (m?.engagementRate || 0), 0) /
+      allPlatformMetrics.length
+      : socialMediaData.overview.engagementRate;
+
+  // Generate overall sentiment data from API (Reddit, Trustpilot, Google Reviews)
+  const getOverallSentimentChartData = () => {
+    if (overallSentiment) {
+      return [
+        { name: "Positive", value: overallSentiment.positive_pct, color: "#64b5f6" },
+        { name: "Neutral", value: overallSentiment.neutral_pct, color: "#a48fff" },
+        { name: "Negative", value: overallSentiment.negative_pct, color: "#ff79c6" },
+      ];
+    }
+    // Fallback to mock data from the current platform
+    return currentPlatformData.sentiment;
+  };
+
+  const overallSentimentChartData = getOverallSentimentChartData();
+
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
@@ -694,10 +848,10 @@ export default function SocialMediaSentimentTab({
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-foreground">
-              {socialMediaData.overview.engagementRate}%
+              {averageEngagementRate.toFixed(2)}%
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              Average across platforms
+              {allPlatformMetrics.length > 0 ? "From API data" : "Average across platforms"}
             </p>
           </CardContent>
         </Card>
@@ -709,16 +863,16 @@ export default function SocialMediaSentimentTab({
                 <Eye className="h-5 w-5 text-primary" />
               </div>
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Post Reach
+                {totalVideoViews > 0 ? "Video Views" : "Total Engagement"}
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-foreground">
-              {formatNumber(socialMediaData.overview.postReach)}
+              {formatNumber(totalVideoViews > 0 ? totalVideoViews : (totalEngagement > 0 ? totalEngagement : socialMediaData.overview.postReach))}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              Monthly average reach
+              {allPlatformMetrics.length > 0 ? "Aggregated from all platforms" : "Monthly average reach"}
             </p>
           </CardContent>
         </Card>
@@ -844,83 +998,169 @@ export default function SocialMediaSentimentTab({
         {/* Platform-Specific Metrics - 2/3 width */}
         <Card className="lg:col-span-2 rounded-3xl border border-border/60 bg-card/90 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-xl">
-              {selectedPlatform} Performance
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Detailed engagement metrics for {selectedPlatform}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">
+                  {allPlatformsChartData ? "All Platforms Performance" : `${selectedPlatform} Performance`}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {allPlatformsChartData
+                    ? "Aggregated social media metrics across all platforms"
+                    : `Detailed engagement metrics for ${selectedPlatform}`}
+                </p>
+              </div>
+              {allPlatformMetrics.length > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-semibold text-green-600">
+                    {averageEngagementRate.toFixed(2)}% Avg Engagement
+                  </span>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={currentPlatformData.posts}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  opacity={0.3}
-                />
-                <XAxis
-                  dataKey="month"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <YAxis
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickFormatter={(value) => formatNumber(value)}
-                />
-                <Tooltip
-                  cursor={{ fill: "hsl(var(--muted)/0.2)" }}
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "12px",
-                    padding: "12px",
-                  }}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Legend
-                  verticalAlign="top"
-                  height={36}
-                  iconType="rect"
-                  formatter={(value) => (
-                    <span className="text-sm text-foreground capitalize">
-                      {value}
-                    </span>
-                  )}
-                />
-                <Bar
-                  dataKey="posts"
-                  fill="hsl(var(--chart-1))"
-                  radius={[8, 8, 0, 0]}
-                />
-                <Bar
-                  dataKey="likes"
-                  fill="hsl(var(--chart-2))"
-                  radius={[8, 8, 0, 0]}
-                />
-                <Bar
-                  dataKey="shares"
-                  fill="hsl(var(--chart-3))"
-                  radius={[8, 8, 0, 0]}
-                />
-                <Bar
-                  dataKey="comments"
-                  fill="hsl(var(--chart-4))"
-                  radius={[8, 8, 0, 0]}
-                />
-                <Bar
-                  dataKey="saves"
-                  fill="hsl(var(--chart-5))"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {metricsLoading ? (
+              <div className="flex items-center justify-center h-[350px]">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : allPlatformsChartData ? (
+              // API data chart - shows all platforms together in vertical bars
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={allPlatformsChartData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    opacity={0.3}
+                  />
+                  <XAxis
+                    dataKey="platform"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickFormatter={(value) => formatNumber(value)}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "12px",
+                      padding: "12px",
+                    }}
+                    formatter={(value: number) => formatNumber(value)}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span className="text-sm text-foreground capitalize">
+                        {value}
+                      </span>
+                    )}
+                  />
+                  <Bar
+                    dataKey="likes"
+                    name="Likes"
+                    fill="hsl(var(--chart-2))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="comments"
+                    name="Comments"
+                    fill="hsl(var(--chart-3))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="views"
+                    name="Views"
+                    fill="hsl(var(--chart-1))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="engagement"
+                    name="Engagement"
+                    fill="hsl(var(--chart-4))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              // Fallback to mock data chart
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={currentPlatformData.posts}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    opacity={0.3}
+                  />
+                  <XAxis
+                    dataKey="month"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickFormatter={(value) => formatNumber(value)}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "12px",
+                      padding: "12px",
+                    }}
+                    formatter={(value: number) => formatNumber(value)}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span className="text-sm text-foreground capitalize">
+                        {value}
+                      </span>
+                    )}
+                  />
+                  <Bar
+                    dataKey="posts"
+                    fill="hsl(var(--chart-1))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="likes"
+                    fill="hsl(var(--chart-2))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="shares"
+                    fill="hsl(var(--chart-3))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="comments"
+                    fill="hsl(var(--chart-4))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="saves"
+                    fill="hsl(var(--chart-5))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
-        {/* Platform-Specific Sentiment - 1/3 width */}
-        <SentimentDonutChart data={currentPlatformData.sentiment} />
+        {/* Overall Sentiment - 1/3 width (from Reddit, Trustpilot, Google Reviews) */}
+        <SentimentDonutChart data={overallSentimentChartData} />
       </div>
 
       {/* Recent Posts */}
@@ -934,42 +1174,103 @@ export default function SocialMediaSentimentTab({
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentPlatformData.recentPosts.map((post) => (
-              <div
-                key={post.id}
-                className="rounded-2xl border border-border/60 overflow-hidden bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all"
-              >
-                {post.image && (
-                  <img
-                    src={post.image}
-                    alt="Post"
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-                <div className="p-4 space-y-3">
-                  <p className="text-sm text-foreground leading-relaxed">
-                    {post.caption}
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-4 w-4" />
-                      {formatNumber(post.likes)}
+          {socialPostsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : socialPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {socialPosts.map((post: SocialPost) => (
+                <a
+                  key={post.id}
+                  href={post.post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-2xl border border-border/60 overflow-hidden bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group"
+                >
+                  {post.image_url && (
+                    <img
+                      src={post.image_url}
+                      alt="Post"
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  )}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                        {post.post_type}
+                      </span>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="h-4 w-4" />
-                      {formatNumber(post.comments)}
+                    <p className="text-sm text-foreground leading-relaxed line-clamp-3">
+                      {post.caption || "No caption"}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        {formatNumber(post.likes_count || 0)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-4 w-4" />
+                        {formatNumber(post.comments_count || 0)}
+                      </div>
+                      {post.views_count && (
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" />
+                          {formatNumber(post.views_count)}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Share2 className="h-4 w-4" />
-                      {formatNumber(post.shares)}
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(post.post_timestamp).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{post.date}</p>
+                </a>
+              ))}
+            </div>
+          ) : (
+            // Fallback to mock data
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentPlatformData.recentPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className="rounded-2xl border border-border/60 overflow-hidden bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all"
+                >
+                  {post.image && (
+                    <img
+                      src={post.image}
+                      alt="Post"
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <div className="p-4 space-y-3">
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {post.caption}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        {formatNumber(post.likes)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-4 w-4" />
+                        {formatNumber(post.comments)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Share2 className="h-4 w-4" />
+                        {formatNumber(post.shares)}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{post.date}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
