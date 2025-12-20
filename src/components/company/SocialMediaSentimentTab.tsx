@@ -38,6 +38,7 @@ import { SocialMediaGrowthChart } from "./SocialMediaGrowthChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
 import { useSocialMediaStore, SocialPost } from "@/store/socialMediaStore";
 import { useCompaniesStore } from "@/store/companiesStore";
+import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
 
 // Platform to job_id mapping for social posts API
 const platformJobIdMap: Record<string, number> = {
@@ -966,10 +967,12 @@ export default function SocialMediaSentimentTab({
       </Card>
 
       {/* Social Media Growth Chart */}
-      <SocialMediaGrowthChart
-        data={socialMediaData.growthData}
-        platforms={socialMediaData.platforms}
-      />
+      <DemoDataWrapper>
+        <SocialMediaGrowthChart
+          data={socialMediaData.growthData}
+          platforms={socialMediaData.platforms}
+        />
+      </DemoDataWrapper>
 
       {/* Platform Selector */}
       <div className="flex flex-wrap gap-3">

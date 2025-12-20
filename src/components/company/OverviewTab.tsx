@@ -18,6 +18,7 @@ import { SentimentDonutChart } from "./SentimentDonutChart";
 import { cn } from "@/lib/utils";
 import { useCompanyDataStore } from "@/store/companyDataStore";
 import { useCompaniesStore } from "@/store/companiesStore";
+import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
 
 interface OverviewTabProps {
   companySlug: string;
@@ -238,138 +239,144 @@ export default function OverviewTab({
         </Card>
       </div>
 
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-accent/20">
-              <DollarSign className="h-5 w-5 text-primary" />
+      <DemoDataWrapper>
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-accent/20">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle className="text-xl">Funding & Valuation</CardTitle>
             </div>
-            <CardTitle className="text-xl">Funding & Valuation</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Total Rounds
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {fallbackData.funding.totalRounds}
-              </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Total Rounds
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  {fallbackData.funding.totalRounds}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Latest Raised
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  {fallbackData.funding.latestRaised}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Total Funding
+                </p>
+                <p className="text-2xl font-bold text-foreground">
+                  {fallbackData.funding.totalFunding}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Last Round
+                </p>
+                <p className="text-sm font-bold text-foreground">
+                  {fallbackData.funding.lastRoundDate}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Lead Investor
+                </p>
+                <p className="text-sm font-bold text-foreground">
+                  {fallbackData.funding.leadInvestor}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground font-medium mb-2">
+                  Valuation
+                </p>
+                <p className="text-2xl font-bold text-primary">
+                  {fallbackData.funding.valuation}
+                </p>
+              </div>
             </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Latest Raised
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {fallbackData.funding.latestRaised}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Total Funding
-              </p>
-              <p className="text-2xl font-bold text-foreground">
-                {fallbackData.funding.totalFunding}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Last Round
-              </p>
-              <p className="text-sm font-bold text-foreground">
-                {fallbackData.funding.lastRoundDate}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Lead Investor
-              </p>
-              <p className="text-sm font-bold text-foreground">
-                {fallbackData.funding.leadInvestor}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-              <p className="text-xs text-muted-foreground font-medium mb-2">
-                Valuation
-              </p>
-              <p className="text-2xl font-bold text-primary">
-                {fallbackData.funding.valuation}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </DemoDataWrapper>
 
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-accent/20">
-              <Briefcase className="h-5 w-5 text-primary" />
+      <DemoDataWrapper>
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-accent/20">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle className="text-xl">Hiring Activity</CardTitle>
             </div>
-            <CardTitle className="text-xl">Hiring Activity</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity className="h-4 w-4 text-primary" />
-                <p className="text-xs text-muted-foreground font-medium">
-                  Active Jobs
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Active Jobs
+                  </p>
+                </div>
+                <p className="text-3xl font-bold text-foreground">
+                  {fallbackData.hiring.activeJobs}
                 </p>
               </div>
-              <p className="text-3xl font-bold text-foreground">
-                {fallbackData.hiring.activeJobs}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-primary" />
-                <p className="text-xs text-muted-foreground font-medium">
-                  Recent Hires
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Recent Hires
+                  </p>
+                </div>
+                <p className="text-3xl font-bold text-foreground">
+                  {fallbackData.hiring.recentHires.toLocaleString()}
                 </p>
               </div>
-              <p className="text-3xl font-bold text-foreground">
-                {fallbackData.hiring.recentHires.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <p className="text-xs text-muted-foreground font-medium">
-                  Growth Rate
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Growth Rate
+                  </p>
+                </div>
+                <p className="text-3xl font-bold text-foreground">
+                  {fallbackData.hiring.growthRate}%
                 </p>
               </div>
-              <p className="text-3xl font-bold text-foreground">
-                {fallbackData.hiring.growthRate}%
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-              <p className="text-xs text-muted-foreground font-medium mb-3">
-                Top Roles
-              </p>
-              <div className="space-y-1">
-                {fallbackData.hiring.topRoles.map((role, index) => (
-                  <div
-                    key={index}
-                    className="text-xs font-medium text-foreground bg-background/50 px-2 py-1 rounded"
-                  >
-                    {role}
-                  </div>
-                ))}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium mb-3">
+                  Top Roles
+                </p>
+                <div className="space-y-1">
+                  {fallbackData.hiring.topRoles.map((role, index) => (
+                    <div
+                      key={index}
+                      className="text-xs font-medium text-foreground bg-background/50 px-2 py-1 rounded"
+                    >
+                      {role}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </DemoDataWrapper>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ClippedAreaChart />
+      <DemoDataWrapper>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <ClippedAreaChart />
+          </div>
+          <SentimentDonutChart data={fallbackData.sentiment} />
         </div>
-        <SentimentDonutChart data={fallbackData.sentiment} />
-      </div>
+      </DemoDataWrapper>
     </div>
   );
 }

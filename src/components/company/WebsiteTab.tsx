@@ -31,6 +31,7 @@ import {
 import { WebsiteTrafficChart } from "./WebsiteTrafficChart";
 import { useWebsiteStore } from "@/store/websiteStore";
 import { useCompaniesStore } from "@/store/companiesStore";
+import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
 
 interface WebsiteTabProps {
   companySlug: string;
@@ -159,142 +160,146 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/20">
-                <Globe className="h-5 w-5 text-primary" />
+      <DemoDataWrapper>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Globe className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Total Traffic
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Total Traffic
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {formatNumber(websiteAnalyticsData.overview.totalTraffic)}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Monthly visitors
-            </p>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-foreground">
+                {formatNumber(websiteAnalyticsData.overview.totalTraffic)}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Monthly visitors
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card
-          className={`rounded-3xl border border-border/60 bg-gradient-to-br ${getTrustScoreBg(
-            websiteAnalyticsData.overview.trustScore
-          )} shadow-lg`}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-green-500/20">
-                <Shield className="h-5 w-5 text-green-600" />
+          <Card
+            className={`rounded-3xl border border-border/60 bg-gradient-to-br ${getTrustScoreBg(
+              websiteAnalyticsData.overview.trustScore
+            )} shadow-lg`}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-green-500/20">
+                  <Shield className="h-5 w-5 text-green-600" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Trust Score
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Trust Score
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p
-              className={`text-4xl font-bold ${getTrustScoreColor(
-                websiteAnalyticsData.overview.trustScore
-              )}`}
-            >
-              {websiteAnalyticsData.overview.trustScore}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">Out of 100</p>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <p
+                className={`text-4xl font-bold ${getTrustScoreColor(
+                  websiteAnalyticsData.overview.trustScore
+                )}`}
+              >
+                {websiteAnalyticsData.overview.trustScore}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">Out of 100</p>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-accent/10 via-card to-card shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/30">
-                <Eye className="h-5 w-5 text-primary" />
+          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-accent/10 via-card to-card shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-accent/30">
+                  <Eye className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Page Views
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Page Views
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {formatNumber(websiteAnalyticsData.overview.pageViews)}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Total page views
-            </p>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-foreground">
+                {formatNumber(websiteAnalyticsData.overview.pageViews)}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Total page views
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/20">
-                <Users className="h-5 w-5 text-primary" />
+          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Unique Visitors
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Unique Visitors
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {formatNumber(websiteAnalyticsData.overview.uniqueVisitors)}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Monthly unique users
-            </p>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-foreground">
+                {formatNumber(websiteAnalyticsData.overview.uniqueVisitors)}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Monthly unique users
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-accent/10 via-card to-card shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/30">
-                <MousePointer className="h-5 w-5 text-primary" />
+          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-accent/10 via-card to-card shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-accent/30">
+                  <MousePointer className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Bounce Rate
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Bounce Rate
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {websiteAnalyticsData.overview.bounceRate}%
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Visitors leaving quickly
-            </p>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-foreground">
+                {websiteAnalyticsData.overview.bounceRate}%
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Visitors leaving quickly
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/20">
-                <Clock className="h-5 w-5 text-primary" />
+          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Avg. Session
+                </CardTitle>
               </div>
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Avg. Session
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {websiteAnalyticsData.overview.avgSessionDuration}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Average time on site
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-foreground">
+                {websiteAnalyticsData.overview.avgSessionDuration}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Average time on site
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DemoDataWrapper>
 
       {/* Traffic Trend */}
-      <WebsiteTrafficChart data={websiteAnalyticsData.trafficTrend} />
+      <DemoDataWrapper>
+        <WebsiteTrafficChart data={websiteAnalyticsData.trafficTrend} />
+      </DemoDataWrapper>
 
       {/* Top Keywords */}
       <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
@@ -418,10 +423,10 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                           <div className="w-24 bg-border/40 rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${keyword.difficulty >= 70
-                                  ? "bg-red-500"
-                                  : keyword.difficulty >= 50
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
+                                ? "bg-red-500"
+                                : keyword.difficulty >= 50
+                                  ? "bg-yellow-500"
+                                  : "bg-green-500"
                                 }`}
                               style={{ width: `${keyword.difficulty}%` }}
                             />
@@ -441,197 +446,201 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
       </Card>
 
       {/* SEO Metrics & Traffic Sources */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* SEO Metrics */}
-        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">SEO Performance</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Search engine optimization metrics
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Domain Authority
-                </p>
-                <p className="text-3xl font-bold text-foreground">
-                  {websiteAnalyticsData.seoMetrics.domainAuthority}
-                </p>
+      <DemoDataWrapper>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* SEO Metrics */}
+          <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">SEO Performance</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Search engine optimization metrics
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Domain Authority
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {websiteAnalyticsData.seoMetrics.domainAuthority}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Page Authority
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {websiteAnalyticsData.seoMetrics.pageAuthority}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Backlinks
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatNumber(websiteAnalyticsData.seoMetrics.backlinks)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Referring Domains
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatNumber(
+                      websiteAnalyticsData.seoMetrics.referringDomains
+                    )}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Organic Keywords
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatNumber(
+                      websiteAnalyticsData.seoMetrics.organicKeywords
+                    )}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Indexed Pages
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatNumber(websiteAnalyticsData.seoMetrics.indexedPages)}
+                  </p>
+                </div>
               </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Page Authority
-                </p>
-                <p className="text-3xl font-bold text-foreground">
-                  {websiteAnalyticsData.seoMetrics.pageAuthority}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Backlinks
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatNumber(websiteAnalyticsData.seoMetrics.backlinks)}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Referring Domains
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatNumber(
-                    websiteAnalyticsData.seoMetrics.referringDomains
-                  )}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Organic Keywords
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatNumber(
-                    websiteAnalyticsData.seoMetrics.organicKeywords
-                  )}
-                </p>
-              </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40">
-                <p className="text-xs text-muted-foreground font-medium mb-2">
-                  Indexed Pages
-                </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatNumber(websiteAnalyticsData.seoMetrics.indexedPages)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Traffic Sources */}
-        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">Traffic Sources</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Where visitors are coming from
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={websiteAnalyticsData.trafficSources}
-                layout="vertical"
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  opacity={0.3}
-                />
-                <XAxis
-                  type="number"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickFormatter={(value) => formatNumber(value)}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="source"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  width={120}
-                />
-                <Tooltip
-                  cursor={{ fill: "hsl(var(--muted)/0.2)" }}
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "12px",
-                    padding: "12px",
-                  }}
-                  formatter={(value: number, name, props) => [
-                    `${formatNumber(value)} (${props.payload.percentage}%)`,
-                    "Visitors",
-                  ]}
-                />
-                <Bar
-                  dataKey="visitors"
-                  fill="hsl(var(--primary))"
-                  radius={[0, 8, 8, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Traffic Sources */}
+          <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Traffic Sources</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Where visitors are coming from
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={websiteAnalyticsData.trafficSources}
+                  layout="vertical"
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    opacity={0.3}
+                  />
+                  <XAxis
+                    type="number"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickFormatter={(value) => formatNumber(value)}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="source"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    width={120}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "12px",
+                      padding: "12px",
+                    }}
+                    formatter={(value: number, name, props) => [
+                      `${formatNumber(value)} (${props.payload.percentage}%)`,
+                      "Visitors",
+                    ]}
+                  />
+                  <Bar
+                    dataKey="visitors"
+                    fill="hsl(var(--primary))"
+                    radius={[0, 8, 8, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </DemoDataWrapper>
 
       {/* Top Pages */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Top Performing Pages</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Most visited pages and their performance metrics
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Page
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Views
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Avg. Time
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Bounce Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {websiteAnalyticsData.topPages.map((page, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-border/50 hover:bg-accent/5 transition-colors"
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
-                          #{index + 1}
-                        </span>
-                        <span className="font-semibold text-foreground font-mono text-sm">
-                          {page.page}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-right font-semibold text-foreground">
-                      {formatNumber(page.views)}
-                    </td>
-                    <td className="py-4 px-4 text-right font-semibold text-foreground">
-                      {page.avgTime}
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span
-                        className={`font-semibold ${page.bounceRate < 40
+      <DemoDataWrapper>
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">Top Performing Pages</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Most visited pages and their performance metrics
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Page
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Views
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Avg. Time
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Bounce Rate
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {websiteAnalyticsData.topPages.map((page, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-border/50 hover:bg-accent/5 transition-colors"
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground font-mono text-sm">
+                            {page.page}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right font-semibold text-foreground">
+                        {formatNumber(page.views)}
+                      </td>
+                      <td className="py-4 px-4 text-right font-semibold text-foreground">
+                        {page.avgTime}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <span
+                          className={`font-semibold ${page.bounceRate < 40
                             ? "text-green-600"
                             : page.bounceRate < 50
                               ? "text-yellow-600"
                               : "text-red-600"
-                          }`}
-                      >
-                        {page.bounceRate}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                            }`}
+                        >
+                          {page.bounceRate}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </DemoDataWrapper>
     </div>
   );
 }
