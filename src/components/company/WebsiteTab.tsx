@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Globe,
@@ -10,6 +11,8 @@ import {
   Eye,
   MousePointer,
   Clock,
+  Loader2,
+  Hash,
 } from "lucide-react";
 import {
   LineChart,
@@ -26,6 +29,8 @@ import {
   Area,
 } from "recharts";
 import { WebsiteTrafficChart } from "./WebsiteTrafficChart";
+import { useWebsiteStore } from "@/store/websiteStore";
+import { useCompaniesStore } from "@/store/companiesStore";
 
 interface WebsiteTabProps {
   companySlug: string;
@@ -104,6 +109,35 @@ const websiteAnalyticsData = {
 };
 
 export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
+  const {
+    keywordSuggestions,
+    keywordSuggestionsLoading,
+    fetchKeywordSuggestions,
+    clearWebsiteData,
+  } = useWebsiteStore();
+
+  const { companies } = useCompaniesStore();
+
+  useEffect(() => {
+    const matchingCompany = companies.find(
+      (c) =>
+        c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
+        companySlug.toLowerCase() ||
+        c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+    );
+
+    const domain = matchingCompany
+      ? matchingCompany.domain
+      : `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
+
+    fetchKeywordSuggestions(domain);
+
+    return () => {
+      clearWebsiteData();
+    };
+  }, [companySlug, companies, fetchKeywordSuggestions, clearWebsiteData]);
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
@@ -270,80 +304,139 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
               <Search className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-xl">Top Keywords</CardTitle>
+              <CardTitle className="text-xl">Keyword Suggestions</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Highest ranking keywords driving organic traffic
+                {keywordSuggestions.length > 0
+                  ? `${keywordSuggestions.length} keyword suggestions from search data`
+                  : "Highest ranking keywords driving organic traffic"}
               </p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Keyword
-                  </th>
-                  <th className="text-center py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Position
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Search Volume
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Difficulty
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {websiteAnalyticsData.topKeywords.map((keyword, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-border/50 hover:bg-accent/5 transition-colors"
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
-                          #{index + 1}
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {keyword.keyword}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 font-semibold text-sm">
-                        <TrendingUp className="h-3 w-3" />#{keyword.position}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right font-semibold text-foreground">
-                      {formatNumber(keyword.volume)}/mo
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-24 bg-border/40 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              keyword.difficulty >= 70
-                                ? "bg-red-500"
-                                : keyword.difficulty >= 50
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
-                            }`}
-                            style={{ width: `${keyword.difficulty}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-semibold text-foreground w-8">
-                          {keyword.difficulty}
-                        </span>
-                      </div>
-                    </td>
+          {keywordSuggestionsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : keywordSuggestions.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Rank
+                    </th>
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Keyword Suggestion
+                    </th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Word Count
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Length
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {keywordSuggestions.map((keyword) => (
+                    <tr
+                      key={keyword.rank}
+                      className="border-b border-border/50 hover:bg-accent/5 transition-colors"
+                    >
+                      <td className="py-4 px-4">
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
+                          #{keyword.rank}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Hash className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-semibold text-foreground">
+                            {keyword.suggestion}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent/20 text-foreground font-semibold text-sm">
+                          {keyword.word_count} words
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right font-semibold text-muted-foreground">
+                        {keyword.length} chars
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            // Fallback to mock data
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Keyword
+                    </th>
+                    <th className="text-center py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Position
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Search Volume
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Difficulty
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {websiteAnalyticsData.topKeywords.map((keyword, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-border/50 hover:bg-accent/5 transition-colors"
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            {keyword.keyword}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 font-semibold text-sm">
+                          <TrendingUp className="h-3 w-3" />#{keyword.position}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right font-semibold text-foreground">
+                        {formatNumber(keyword.volume)}/mo
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-24 bg-border/40 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${keyword.difficulty >= 70
+                                  ? "bg-red-500"
+                                  : keyword.difficulty >= 50
+                                    ? "bg-yellow-500"
+                                    : "bg-green-500"
+                                }`}
+                              style={{ width: `${keyword.difficulty}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-semibold text-foreground w-8">
+                            {keyword.difficulty}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -522,13 +615,12 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                     </td>
                     <td className="py-4 px-4 text-right">
                       <span
-                        className={`font-semibold ${
-                          page.bounceRate < 40
+                        className={`font-semibold ${page.bounceRate < 40
                             ? "text-green-600"
                             : page.bounceRate < 50
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }`}
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                          }`}
                       >
                         {page.bounceRate}%
                       </span>
