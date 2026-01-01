@@ -6,8 +6,8 @@ import {
   Settings,
   CreditCard,
   FileText,
+  User,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,26 +23,33 @@ interface MenuItem {
 }
 
 interface Profile01Props {
-  name: string;
-  role: string;
-  avatar: string;
+  name?: string;
+  role?: string;
   subscription?: string;
 }
 
 const defaultProfile = {
-  name: "Eugene An",
-  role: "Prompt Engineer",
-  avatar:
-    "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-02-albo9B0tWOSLXCVZh9rX9KFxXIVWMr.png",
+  name: "User",
+  role: "Member",
   subscription: "Free Trial",
-} satisfies Required<Profile01Props>;
+};
+
+// Avatar fallback component that shows initials
+function AvatarFallback({ name }: { name?: string }) {
+  const initial = name ? name.charAt(0).toUpperCase() : <User className="w-6 h-6" />
+
+  return (
+    <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-semibold ring-4 ring-background">
+      {initial}
+    </div>
+  )
+}
 
 export default function Profile01({
   name = defaultProfile.name,
   role = defaultProfile.role,
-  avatar = defaultProfile.avatar,
   subscription = defaultProfile.subscription,
-}: Partial<Profile01Props> = defaultProfile) {
+}: Profile01Props = defaultProfile) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -118,13 +125,7 @@ export default function Profile01({
         <div className="relative px-6 pt-12 pb-6">
           <div className="flex items-center gap-4 mb-8">
             <div className="relative shrink-0">
-              <Image
-                src={avatar}
-                alt={name}
-                width={72}
-                height={72}
-                className="rounded-full ring-4 ring-background object-cover"
-              />
+              <AvatarFallback name={name} />
               <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-background" />
             </div>
 

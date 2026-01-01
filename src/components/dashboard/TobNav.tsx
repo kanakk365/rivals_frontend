@@ -1,8 +1,7 @@
 "use client"
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Image from "next/image"
-import { Bell, ChevronRight } from "lucide-react"
+import { Bell, ChevronRight, User } from "lucide-react"
 import Profile01 from "./profile"
 import Link from "next/link"
 import { ThemeToggle } from "../utils/theme-toggle"
@@ -12,11 +11,31 @@ interface BreadcrumbItem {
   href?: string
 }
 
+// Avatar fallback component that shows initials
+function AvatarFallback({ name, size = "sm" }: { name?: string; size?: "sm" | "md" | "lg" }) {
+  const sizeClasses = {
+    sm: "w-7 h-7 sm:w-8 sm:h-8 text-xs",
+    md: "w-10 h-10 text-sm",
+    lg: "w-[72px] h-[72px] text-xl"
+  }
+
+  const initial = name ? name.charAt(0).toUpperCase() : <User className="w-4 h-4" />
+
+  return (
+    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold ring-2 ring-border cursor-pointer`}>
+      {initial}
+    </div>
+  )
+}
+
 export default function TopNav() {
   const breadcrumbs: BreadcrumbItem[] = [
     { label: "Destination KP", href: "#" },
     { label: "dashboard", href: "#" },
   ]
+
+  // This would typically come from user context/auth state
+  const userName = "User"
 
   return (
     <nav className="px-3 sm:px-6 flex items-center justify-between bg-background border-b border-border h-full">
@@ -50,23 +69,18 @@ export default function TopNav() {
 
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none">
-            <Image
-              src="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-              alt="User avatar"
-              width={28}
-              height={28}
-              className="rounded-full ring-2 ring-border sm:w-8 sm:h-8 cursor-pointer"
-            />
+            <AvatarFallback name={userName} size="sm" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             sideOffset={8}
             className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
           >
-            <Profile01 avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png" />
+            <Profile01 />
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </nav>
   )
 }
+
