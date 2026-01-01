@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Users,
   TrendingUp,
+  AlertCircle,
   Eye,
   Instagram,
   Facebook,
@@ -634,65 +635,77 @@ export default function SocialMediaSentimentTab({
     return num || 0;
   };
 
-  const dynamicPlatforms = [
+  // Build platforms array with only API data (no fallback to mock data)
+  const allPlatformsRaw = [
     {
       name: "Instagram",
       icon: Instagram,
-      followers: instagramData?.followersCount || socialMediaData.platforms[0].followers,
-      totalPosts: instagramData?.postsCount || socialMediaData.platforms[0].totalPosts,
-      growth: 12.5,
+      followers: instagramData?.followersCount || null,
+      totalPosts: instagramData?.postsCount || null,
+      growth: instagramData ? 12.5 : null, // Only show growth if we have data
       color: "hsl(330, 80%, 50%)",
       verified: instagramData?.isVerified || false,
       profileUrl: instagramData?.profileUrl || "",
       activityLevel: instagramData?.activityLevel || "",
+      hasData: !!instagramData,
     },
     {
       name: "Facebook",
       icon: Facebook,
-      followers: facebookData ? parseFollowers(facebookData.followers) : socialMediaData.platforms[1].followers,
-      totalPosts: socialMediaData.platforms[1].totalPosts,
-      growth: 8.3,
+      followers: facebookData ? parseFollowers(facebookData.followers) : null,
+      totalPosts: null, // No posts count from API
+      growth: facebookData ? 8.3 : null,
       color: "hsl(221, 44%, 41%)",
       verified: facebookData?.verified || false,
       profileUrl: facebookData?.url || "",
       category: facebookData?.category || "",
+      hasData: !!facebookData,
     },
     {
       name: "Twitter",
       icon: Twitter,
-      followers: socialMediaData.platforms[2].followers,
-      totalPosts: socialMediaData.platforms[2].totalPosts,
-      growth: 15.7,
+      followers: null, // Twitter API not being fetched
+      totalPosts: null,
+      growth: null,
       color: "hsl(203, 89%, 53%)",
       verified: false,
       profileUrl: "",
+      hasData: false,
     },
     {
       name: "LinkedIn",
       icon: Linkedin,
-      followers: linkedinData?.followerCount || socialMediaData.platforms[3].followers,
-      totalPosts: socialMediaData.platforms[3].totalPosts,
-      growth: 22.1,
+      followers: linkedinData?.followerCount || null,
+      totalPosts: null, // No posts count from API
+      growth: linkedinData ? 22.1 : null,
       color: "hsl(201, 100%, 35%)",
       verified: false,
       profileUrl: linkedinData?.url || "",
       employeeCount: linkedinData?.employeeCount || 0,
+      hasData: !!linkedinData,
     },
     {
       name: "YouTube",
       icon: Youtube,
-      followers: youtubeData?.statistics ? parseInt(youtubeData.statistics.subscriberCount) : socialMediaData.platforms[4].followers,
-      totalPosts: youtubeData?.statistics?.totalPosts || socialMediaData.platforms[4].totalPosts,
-      growth: 18.9,
+      followers: youtubeData?.statistics ? parseInt(youtubeData.statistics.subscriberCount) : null,
+      totalPosts: youtubeData?.statistics?.totalPosts || null,
+      growth: youtubeData ? 18.9 : null,
       color: "hsl(0, 100%, 50%)",
       verified: false,
       profileUrl: youtubeData?.url || "",
       viewCount: youtubeData?.statistics?.viewCount || "0",
+      hasData: !!youtubeData,
     },
   ];
 
-  // Calculate total followers from API data
-  const totalFollowers = dynamicPlatforms.reduce((sum, p) => sum + p.followers, 0);
+  // Filter to only include platforms with actual data
+  const dynamicPlatforms = allPlatformsRaw.filter(p => p.hasData);
+
+  // Calculate total followers from API data (only from platforms with data)
+  const totalFollowers = dynamicPlatforms.reduce((sum, p) => sum + (p.followers || 0), 0);
+
+  // Check if we have any platform data at all
+  const hasAnyPlatformData = dynamicPlatforms.length > 0;
 
   const currentPlatformData =
     socialMediaData.platformMetrics[
@@ -827,12 +840,21 @@ export default function SocialMediaSentimentTab({
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {formatNumber(totalFollowers)}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Across all platforms
-            </p>
+            {hasAnyPlatformData && totalFollowers > 0 ? (
+              <>
+                <p className="text-4xl font-bold text-foreground">
+                  {formatNumber(totalFollowers)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Across {dynamicPlatforms.length} platform{dynamicPlatforms.length > 1 ? 's' : ''}
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <AlertCircle className="h-5 w-5" />
+                <p className="text-sm">Not enough data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -848,12 +870,21 @@ export default function SocialMediaSentimentTab({
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {averageEngagementRate.toFixed(2)}%
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {allPlatformMetrics.length > 0 ? "From API data" : "Average across platforms"}
-            </p>
+            {allPlatformMetrics.length > 0 ? (
+              <>
+                <p className="text-4xl font-bold text-foreground">
+                  {averageEngagementRate.toFixed(2)}%
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  From API data
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <AlertCircle className="h-5 w-5" />
+                <p className="text-sm">Not enough data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -869,12 +900,21 @@ export default function SocialMediaSentimentTab({
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-foreground">
-              {formatNumber(totalVideoViews > 0 ? totalVideoViews : (totalEngagement > 0 ? totalEngagement : socialMediaData.overview.postReach))}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {allPlatformMetrics.length > 0 ? "Aggregated from all platforms" : "Monthly average reach"}
-            </p>
+            {(totalVideoViews > 0 || totalEngagement > 0) ? (
+              <>
+                <p className="text-4xl font-bold text-foreground">
+                  {formatNumber(totalVideoViews > 0 ? totalVideoViews : totalEngagement)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Aggregated from all platforms
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <AlertCircle className="h-5 w-5" />
+                <p className="text-sm">Not enough data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -888,81 +928,96 @@ export default function SocialMediaSentimentTab({
           </p>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Platform
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Followers
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Total Posts
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                    Growth
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {dynamicPlatforms.map((platform) => {
-                  const Icon = platform.icon;
-                  return (
-                    <tr
-                      key={platform.name}
-                      className="border-b border-border/50 hover:bg-accent/5 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="p-2 rounded-lg"
-                            style={{ backgroundColor: `${platform.color}15` }}
-                          >
-                            <Icon
-                              className="h-5 w-5"
-                              style={{ color: platform.color }}
-                            />
+          {isLoading && dynamicPlatforms.length === 0 ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : dynamicPlatforms.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Platform
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Followers
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Total Posts
+                    </th>
+                    <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
+                      Growth
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dynamicPlatforms.map((platform) => {
+                    const Icon = platform.icon;
+                    return (
+                      <tr
+                        key={platform.name}
+                        className="border-b border-border/50 hover:bg-accent/5 transition-colors"
+                      >
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="p-2 rounded-lg"
+                              style={{ backgroundColor: `${platform.color}15` }}
+                            >
+                              <Icon
+                                className="h-5 w-5"
+                                style={{ color: platform.color }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">
+                                {platform.name}
+                              </span>
+                              {platform.verified && (
+                                <CheckCircle className="h-4 w-4 text-blue-500" />
+                              )}
+                              {platform.profileUrl && (
+                                <a
+                                  href={platform.profileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-muted-foreground hover:text-primary"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground">
-                              {platform.name}
+                        </td>
+                        <td className="py-4 px-4 text-right font-semibold text-foreground">
+                          {platform.followers ? formatNumber(platform.followers) : "—"}
+                        </td>
+                        <td className="py-4 px-4 text-right font-semibold text-foreground">
+                          {platform.totalPosts ? platform.totalPosts.toLocaleString() : "—"}
+                        </td>
+                        <td className="py-4 px-4 text-right">
+                          {platform.growth ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 font-semibold text-sm">
+                              <TrendingUp className="h-3 w-3" />
+                              {platform.growth}%
                             </span>
-                            {platform.verified && (
-                              <CheckCircle className="h-4 w-4 text-blue-500" />
-                            )}
-                            {platform.profileUrl && (
-                              <a
-                                href={platform.profileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-muted-foreground hover:text-primary"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right font-semibold text-foreground">
-                        {formatNumber(platform.followers)}
-                      </td>
-                      <td className="py-4 px-4 text-right font-semibold text-foreground">
-                        {platform.totalPosts.toLocaleString()}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 font-semibold text-sm">
-                          <TrendingUp className="h-3 w-3" />
-                          {platform.growth}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-32 gap-2 text-muted-foreground">
+              <AlertCircle className="h-8 w-8" />
+              <p className="text-sm">Not enough data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -974,9 +1029,9 @@ export default function SocialMediaSentimentTab({
         />
       </DemoDataWrapper>
 
-      {/* Platform Selector */}
+      {/* Platform Selector - Show all platforms for selection */}
       <div className="flex flex-wrap gap-3">
-        {dynamicPlatforms.map((platform) => {
+        {allPlatformsRaw.map((platform) => {
           const Icon = platform.icon;
           return (
             <button
@@ -985,7 +1040,7 @@ export default function SocialMediaSentimentTab({
               className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${selectedPlatform === platform.name
                 ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
                 : "bg-card border border-border/60 text-foreground hover:border-primary/50"
-                }`}
+                } ${!platform.hasData ? "opacity-50" : ""}`}
             >
               <Icon className="h-5 w-5" />
               {platform.name}
@@ -1093,71 +1148,12 @@ export default function SocialMediaSentimentTab({
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              // Fallback to mock data chart
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={currentPlatformData.posts}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                    opacity={0.3}
-                  />
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    tickFormatter={(value) => formatNumber(value)}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "12px",
-                      padding: "12px",
-                    }}
-                    formatter={(value: number) => formatNumber(value)}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span className="text-sm text-foreground capitalize">
-                        {value}
-                      </span>
-                    )}
-                  />
-                  <Bar
-                    dataKey="posts"
-                    fill="hsl(var(--chart-1))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="likes"
-                    fill="hsl(var(--chart-2))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="shares"
-                    fill="hsl(var(--chart-3))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="comments"
-                    fill="hsl(var(--chart-4))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="saves"
-                    fill="hsl(var(--chart-5))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              // No data available
+              <div className="flex flex-col items-center justify-center h-[350px] gap-2 text-muted-foreground">
+                <AlertCircle className="h-12 w-12" />
+                <p className="text-lg font-medium">Not enough data available</p>
+                <p className="text-sm">Performance metrics will appear once data is collected</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -1236,42 +1232,11 @@ export default function SocialMediaSentimentTab({
               ))}
             </div>
           ) : (
-            // Fallback to mock data
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentPlatformData.recentPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="rounded-2xl border border-border/60 overflow-hidden bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all"
-                >
-                  {post.image && (
-                    <img
-                      src={post.image}
-                      alt="Post"
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
-                  <div className="p-4 space-y-3">
-                    <p className="text-sm text-foreground leading-relaxed">
-                      {post.caption}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-4 w-4" />
-                        {formatNumber(post.likes)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="h-4 w-4" />
-                        {formatNumber(post.comments)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Share2 className="h-4 w-4" />
-                        {formatNumber(post.shares)}
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{post.date}</p>
-                  </div>
-                </div>
-              ))}
+            // No data available
+            <div className="flex flex-col items-center justify-center h-64 gap-2 text-muted-foreground">
+              <AlertCircle className="h-12 w-12" />
+              <p className="text-lg font-medium">Not enough data available</p>
+              <p className="text-sm">Recent posts will appear once data is collected for {selectedPlatform}</p>
             </div>
           )}
         </CardContent>

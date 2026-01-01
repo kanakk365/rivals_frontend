@@ -25,7 +25,6 @@ interface OverviewTabProps {
   themeGradient?: string;
 }
 
-// Fallback data for sections not covered by API
 const getFallbackData = () => ({
   funding: {
     totalRounds: 12,
