@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { motion } from "motion/react";
 
@@ -11,25 +11,26 @@ const DEMO_CREDENTIALS = {
     password: "SecurePassword123!",
 };
 
-interface AuthGuardProps {
+type LoginStatus = "loading" | "logging-in" | "success" | "error";
+
+interface AutoLoginWrapperProps {
     children: React.ReactNode;
 }
 
-type AuthStatus = "checking" | "logging-in" | "authenticated" | "error";
-
-export default function AuthGuard({ children }: AuthGuardProps) {
+export default function AutoLoginWrapper({ children }: AutoLoginWrapperProps) {
     const router = useRouter();
-    const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
+    const pathname = usePathname();
+    const [loginStatus, setLoginStatus] = useState<LoginStatus>("loading");
     const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
-        const checkAndAutoLogin = async () => {
+        const performAutoLogin = async () => {
             // Always perform fresh auto-login with demo credentials
             // Clear any existing tokens first to ensure clean state
             localStorage.removeItem("token");
             localStorage.removeItem("token_type");
 
-            setAuthStatus("logging-in");
+            setLoginStatus("logging-in");
 
             try {
                 const { data, error, status } = await apiClient.post<{
@@ -50,35 +51,46 @@ export default function AuthGuard({ children }: AuthGuardProps) {
                         localStorage.setItem("token", accessToken);
                         localStorage.setItem("token_type", tokenType);
 
-                        // Small delay to show success animation
+                        setLoginStatus("success");
+
+                        // Redirect to dashboard after successful login
                         setTimeout(() => {
-                            setAuthStatus("authenticated");
+                            router.push("/dashboard");
                         }, 800);
                     } else {
-                        setAuthStatus("error");
+                        setLoginStatus("error");
                         setErrorMessage("No access token received");
                     }
                 } else {
-                    setAuthStatus("error");
+                    setLoginStatus("error");
                     setErrorMessage(error || "Auto-login failed");
                 }
             } catch (err: unknown) {
                 const errorMsg = err instanceof Error ? err.message : "An unknown error occurred";
-                setAuthStatus("error");
+                setLoginStatus("error");
                 setErrorMessage(errorMsg);
             }
         };
 
-        checkAndAutoLogin();
-    }, [router]);
+        // Only auto-login on landing page, login page, or signup page
+        // Dashboard already has AuthGuard which will handle its own auto-login
+        if (pathname === "/" || pathname === "/login" || pathname === "/signup") {
+            performAutoLogin();
+        } else {
+            // For other routes (like dashboard), let them render normally
+            // They will use AuthGuard for authentication
+            setLoginStatus("success");
+        }
+    }, [pathname, router]);
 
-    // Show loading state while checking authentication or auto-logging in
-    if (authStatus === "checking" || authStatus === "logging-in") {
-        return <LoadingScreen status={authStatus} />;
+    // Show loading screen while auto-login is in progress (for / and /login routes)
+    if ((pathname === "/" || pathname === "/login" || pathname === "/signup") &&
+        (loginStatus === "loading" || loginStatus === "logging-in" || loginStatus === "success")) {
+        return <LoadingScreen status={loginStatus} />;
     }
 
     // Show error state if auto-login failed
-    if (authStatus === "error") {
+    if (loginStatus === "error") {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950">
                 <motion.div
@@ -96,22 +108,21 @@ export default function AuthGuard({ children }: AuthGuardProps) {
                         <p className="text-zinc-400 text-sm">{errorMessage}</p>
                     </div>
                     <button
-                        onClick={() => router.push("/login")}
+                        onClick={() => window.location.reload()}
                         className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
                     >
-                        Go to Login
+                        Try Again
                     </button>
                 </motion.div>
             </div>
         );
     }
 
-    // User is authenticated, render children
     return <>{children}</>;
 }
 
 // Beautiful loading screen component
-function LoadingScreen({ status }: { status: "checking" | "logging-in" }) {
+function LoadingScreen({ status }: { status: LoginStatus }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950">
             {/* Background decoration */}
@@ -236,15 +247,27 @@ function LoadingScreen({ status }: { status: "checking" | "logging-in" }) {
                         transition={{ duration: 0.3 }}
                         className="flex flex-col items-center gap-2"
                     >
-                        {status === "checking" && (
+                        {status === "loading" && (
                             <p className="text-zinc-400 text-sm font-medium">
-                                Checking authentication...
+                                Initializing...
                             </p>
                         )}
                         {status === "logging-in" && (
                             <p className="text-zinc-300 text-sm font-medium">
                                 Signing you in...
                             </p>
+                        )}
+                        {status === "success" && (
+                            <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                className="flex items-center gap-2 text-green-400"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span className="text-sm font-medium">Welcome! Redirecting...</span>
+                            </motion.div>
                         )}
                     </motion.div>
                 </motion.div>
@@ -260,10 +283,11 @@ function LoadingScreen({ status }: { status: "checking" | "logging-in" }) {
                         className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
                         initial={{ width: "0%" }}
                         animate={{
-                            width: status === "logging-in" ? "70%" : "30%"
+                            width: status === "success" ? "100%" :
+                                status === "logging-in" ? "70%" : "20%"
                         }}
                         transition={{
-                            duration: 2,
+                            duration: status === "success" ? 0.3 : 2,
                             ease: "easeInOut"
                         }}
                     />
@@ -272,4 +296,3 @@ function LoadingScreen({ status }: { status: "checking" | "logging-in" }) {
         </div>
     );
 }
-
