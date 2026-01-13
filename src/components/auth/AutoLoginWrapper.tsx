@@ -92,7 +92,7 @@ export default function AutoLoginWrapper({ children }: AutoLoginWrapperProps) {
     // Show error state if auto-login failed
     if (loginStatus === "error") {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950">
+            <div className="flex h-screen w-full items-center justify-center bg-[#09090b] bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950" style={{ backgroundColor: '#09090b' }}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -124,7 +124,7 @@ export default function AutoLoginWrapper({ children }: AutoLoginWrapperProps) {
 // Beautiful loading screen component
 function LoadingScreen({ status }: { status: LoginStatus }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#09090b] bg-gradient-to-br from-zinc-950 via-purple-950/20 to-zinc-950" style={{ backgroundColor: '#09090b' }}>
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden">
                 {/* Animated gradient orbs */}
