@@ -263,8 +263,14 @@ interface SocialMediaState {
   metricsLoading: boolean;
   // Review sentiment data (Reddit, Trustpilot, Google Reviews)
   redditSentiment: SentimentSummary | null;
+  redditTarget: ReviewTarget | null;
+  redditUrls: string[];
   trustpilotSentiment: SentimentSummary | null;
+  trustpilotTarget: ReviewTarget | null;
+  trustpilotUrls: string[];
   googleReviewsSentiment: SentimentSummary | null;
+  googleReviewsTarget: ReviewTarget | null;
+  googleReviewsUrls: string[];
   overallSentiment: OverallSentiment | null;
   sentimentLoading: boolean;
   // Social posts list state
@@ -291,7 +297,7 @@ interface SocialMediaActions {
     domain: string,
     platform: number,
     limit?: number,
-    offset?: number
+    offset?: number,
   ) => Promise<void>;
   clearSocialMediaData: () => void;
 }
@@ -319,8 +325,14 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
   metricsLoading: false,
   // Review sentiment state
   redditSentiment: null,
+  redditTarget: null,
+  redditUrls: [],
   trustpilotSentiment: null,
+  trustpilotTarget: null,
+  trustpilotUrls: [],
   googleReviewsSentiment: null,
+  googleReviewsTarget: null,
+  googleReviewsUrls: [],
   overallSentiment: null,
   sentimentLoading: false,
   // Social posts state
@@ -342,7 +354,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
 
     const response = await apiClient.post<SocialMediaDataResponse>(
       "/api/frontend/social-data",
-      requestBody
+      requestBody,
     );
 
     loadingPlatforms.delete("instagram");
@@ -384,7 +396,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
 
     const response = await apiClient.post<SocialMediaDataResponse>(
       "/api/frontend/social-data",
-      requestBody
+      requestBody,
     );
 
     loadingPlatforms.delete("twitter");
@@ -426,7 +438,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
 
     const response = await apiClient.post<SocialMediaDataResponse>(
       "/api/frontend/social-data",
-      requestBody
+      requestBody,
     );
 
     loadingPlatforms.delete("youtube");
@@ -468,7 +480,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
 
     const response = await apiClient.post<SocialMediaDataResponse>(
       "/api/frontend/social-data",
-      requestBody
+      requestBody,
     );
 
     loadingPlatforms.delete("facebook");
@@ -510,7 +522,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
 
     const response = await apiClient.post<SocialMediaDataResponse>(
       "/api/frontend/social-data",
-      requestBody
+      requestBody,
     );
 
     loadingPlatforms.delete("linkedin");
@@ -562,8 +574,8 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
   fetchPlatformMetrics: async (domain: string, jobId: number) => {
     const response = await apiClient.get<SocialPostsMetricsResponse>(
       `/api/frontend/social-posts/metrics?domain=${encodeURIComponent(
-        domain
-      )}&job_id=${jobId}`
+        domain,
+      )}&job_id=${jobId}`,
     );
 
     if (response.error || !response.data) {
@@ -654,26 +666,38 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
   fetchReviewSentiment: async (domain: string, jobId: number) => {
     const response = await apiClient.get<ReviewPostsStatisticsResponse>(
       `/api/frontend/review-posts/statistics?domain=${encodeURIComponent(
-        domain
-      )}&job_id=${jobId}`
+        domain,
+      )}&job_id=${jobId}`,
     );
 
     if (response.error || !response.data || !response.data.sentiment_summary) {
       return;
     }
 
-    const sentiment = response.data.sentiment_summary;
+    const data = response.data;
 
     // Map job_id to sentiment state
     switch (jobId) {
       case 12:
-        set({ redditSentiment: sentiment });
+        set({
+          redditSentiment: data.sentiment_summary,
+          redditTarget: data.target,
+          redditUrls: data.review_urls,
+        });
         break;
       case 13:
-        set({ trustpilotSentiment: sentiment });
+        set({
+          trustpilotSentiment: data.sentiment_summary,
+          trustpilotTarget: data.target,
+          trustpilotUrls: data.review_urls,
+        });
         break;
       case 14:
-        set({ googleReviewsSentiment: sentiment });
+        set({
+          googleReviewsSentiment: data.sentiment_summary,
+          googleReviewsTarget: data.target,
+          googleReviewsUrls: data.review_urls,
+        });
         break;
     }
   },
@@ -702,16 +726,16 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
       const overall: OverallSentiment = {
         positive_count: sentiments.reduce(
           (sum, s) => sum + s.positive_count,
-          0
+          0,
         ),
         negative_count: sentiments.reduce(
           (sum, s) => sum + s.negative_count,
-          0
+          0,
         ),
         neutral_count: sentiments.reduce((sum, s) => sum + s.neutral_count, 0),
         total_analyzed: sentiments.reduce(
           (sum, s) => sum + s.total_analyzed,
-          0
+          0,
         ),
         positive_pct: 0,
         negative_pct: 0,
@@ -721,13 +745,13 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
       // Calculate percentages
       if (overall.total_analyzed > 0) {
         overall.positive_pct = Math.round(
-          (overall.positive_count / overall.total_analyzed) * 100
+          (overall.positive_count / overall.total_analyzed) * 100,
         );
         overall.negative_pct = Math.round(
-          (overall.negative_count / overall.total_analyzed) * 100
+          (overall.negative_count / overall.total_analyzed) * 100,
         );
         overall.neutral_pct = Math.round(
-          (overall.neutral_count / overall.total_analyzed) * 100
+          (overall.neutral_count / overall.total_analyzed) * 100,
         );
       }
 
@@ -741,7 +765,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
     domain: string,
     platform: number,
     limit = 10,
-    offset = 0
+    offset = 0,
   ) => {
     set({ socialPostsLoading: true });
 
@@ -753,7 +777,7 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
     });
 
     const response = await apiClient.get<SocialPostsListResponse>(
-      `/api/frontend/social-posts/list?${queryParams.toString()}`
+      `/api/frontend/social-posts/list?${queryParams.toString()}`,
     );
 
     if (response.data) {
@@ -788,8 +812,14 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
       metricsLoading: false,
       // Clear sentiment
       redditSentiment: null,
+      redditTarget: null,
+      redditUrls: [],
       trustpilotSentiment: null,
+      trustpilotTarget: null,
+      trustpilotUrls: [],
       googleReviewsSentiment: null,
+      googleReviewsTarget: null,
+      googleReviewsUrls: [],
       overallSentiment: null,
       sentimentLoading: false,
       socialPosts: [],

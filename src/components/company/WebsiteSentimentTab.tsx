@@ -8,6 +8,7 @@ import {
   Minus,
   TrendingUp,
   Star,
+  Loader2,
 } from "lucide-react";
 import {
   PieChart,
@@ -24,6 +25,10 @@ import {
 } from "recharts";
 import { SentimentDonutChart } from "./SentimentDonutChart";
 import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
+import { useSocialMediaStore } from "@/store/socialMediaStore";
+import { useCompaniesStore } from "@/store/companiesStore";
+import { useEffect } from "react";
+import { CheckCircle, ExternalLink, MapPin } from "lucide-react";
 
 interface WebsiteSentimentTabProps {
   companySlug: string;
@@ -100,169 +105,233 @@ const websiteSentimentData = {
 export default function WebsiteSentimentTab({
   companySlug,
 }: WebsiteSentimentTabProps) {
-  const sentimentData = [
-    {
-      name: "Positive",
-      value: websiteSentimentData.sentimentBreakdown.positive,
-      percentage: (
-        (websiteSentimentData.sentimentBreakdown.positive /
-          websiteSentimentData.totalFeedback) *
-        100
-      ).toFixed(1),
-      color: "#64b5f6",
-    },
-    {
-      name: "Neutral",
-      value: websiteSentimentData.sentimentBreakdown.neutral,
-      percentage: (
-        (websiteSentimentData.sentimentBreakdown.neutral /
-          websiteSentimentData.totalFeedback) *
-        100
-      ).toFixed(1),
-      color: "#a48fff",
-    },
-    {
-      name: "Negative",
-      value: websiteSentimentData.sentimentBreakdown.negative,
-      percentage: (
-        (websiteSentimentData.sentimentBreakdown.negative /
-          websiteSentimentData.totalFeedback) *
-        100
-      ).toFixed(1),
-      color: "#ff79c6",
-    },
-  ];
+  const {
+    // Review sentiments and targets
+    redditSentiment,
+    redditTarget,
+    redditUrls,
+    trustpilotSentiment,
+    trustpilotTarget,
+    trustpilotUrls,
+    googleReviewsSentiment,
+    googleReviewsTarget,
+    googleReviewsUrls,
+    fetchAllReviewSentiments,
+    sentimentLoading,
+    overallSentiment,
+  } = useSocialMediaStore();
 
   const formatNumber = (num: number) => {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
 
+  const sentimentData = [
+    {
+      name: "Positive",
+      value: overallSentiment?.positive_pct || 0,
+      percentage: (overallSentiment?.positive_pct || 0).toFixed(1),
+      color: "#64b5f6",
+    },
+    {
+      name: "Neutral",
+      value: overallSentiment?.neutral_pct || 0,
+      percentage: (overallSentiment?.neutral_pct || 0).toFixed(1),
+      color: "#a48fff",
+    },
+    {
+      name: "Negative",
+      value: overallSentiment?.negative_pct || 0,
+      percentage: (overallSentiment?.negative_pct || 0).toFixed(1),
+      color: "#ff79c6",
+    },
+  ];
+
+  const { companies } = useCompaniesStore();
+
+  useEffect(() => {
+    const matchingCompany = companies.find(
+      (c) =>
+        c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
+        companySlug.toLowerCase() ||
+        c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+    );
+
+    if (matchingCompany) {
+      fetchAllReviewSentiments(matchingCompany.domain);
+    } else {
+      const domain = `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
+      fetchAllReviewSentiments(domain);
+    }
+  }, [companySlug, companies, fetchAllReviewSentiments]);
+
   return (
-    <DemoDataWrapper>
-      <div className="space-y-6">
-        {/* Total Feedback Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/20">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                </div>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Total Feedback
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-foreground">
-                {formatNumber(websiteSentimentData.totalFeedback)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Across all platforms
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-cyan-500/10 via-card to-card shadow-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-cyan-500/20">
-                  <ThumbsUp className="h-5 w-5 text-cyan-600" />
-                </div>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Positive
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-cyan-600">
-                {formatNumber(websiteSentimentData.sentimentBreakdown.positive)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {sentimentData[0].percentage}% of total
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-purple-500/10 via-card to-card shadow-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-purple-500/20">
-                  <Minus className="h-5 w-5 text-purple-600" />
-                </div>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Neutral
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-purple-600">
-                {formatNumber(websiteSentimentData.sentimentBreakdown.neutral)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {sentimentData[1].percentage}% of total
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-slate-500/10 via-card to-card shadow-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-slate-500/20">
-                  <ThumbsDown className="h-5 w-5 text-slate-600" />
-                </div>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Negative
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-slate-600">
-                {formatNumber(websiteSentimentData.sentimentBreakdown.negative)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {sentimentData[2].percentage}% of total
-              </p>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent w-fit">
+            Review Sentiment Analysis
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Aggregated sentiment from Reddit, Trustpilot, and Google Reviews
+          </p>
         </div>
+        {sentimentLoading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+      </div>
 
-        {/* Platform Breakdown */}
-        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">Platform Breakdown</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Feedback distribution across Glassdoor and Indeed
-            </p>
+      {/* Total Feedback Overview (Real Data) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/20">
+                <MessageSquare className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Total Feedback
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {websiteSentimentData.platforms.map((platform) => (
-                <div
-                  key={platform.name}
-                  className="p-6 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{platform.icon}</span>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground">
-                          {platform.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {formatNumber(platform.totalReviews)} reviews
-                        </p>
-                      </div>
+            <p className="text-4xl font-bold text-foreground">
+              {formatNumber(overallSentiment?.total_analyzed || 0)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Across all platforms
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-cyan-500/10 via-card to-card shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-cyan-500/20">
+                <ThumbsUp className="h-5 w-5 text-cyan-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Positive
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-cyan-600">
+              {formatNumber(overallSentiment?.positive_count || 0)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {overallSentiment?.total_analyzed ? ((overallSentiment.positive_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-purple-500/10 via-card to-card shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-purple-500/20">
+                <Minus className="h-5 w-5 text-purple-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Neutral
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-purple-600">
+              {formatNumber(overallSentiment?.neutral_count || 0)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {overallSentiment?.total_analyzed ? ((overallSentiment.neutral_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-slate-500/10 via-card to-card shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-slate-500/20">
+                <ThumbsDown className="h-5 w-5 text-slate-600" />
+              </div>
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Negative
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-slate-600">
+              {formatNumber(overallSentiment?.negative_count || 0)}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {overallSentiment?.total_analyzed ? ((overallSentiment.negative_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Platform Breakdown (Real Data) */}
+      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl">Platform Breakdown</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Feedback distribution across different platforms
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Reddit",
+                icon: MessageSquare,
+                sentiment: redditSentiment,
+                target: redditTarget,
+                urls: redditUrls,
+                color: "#FF4500",
+              },
+              {
+                name: "Trustpilot",
+                icon: Star,
+                sentiment: trustpilotSentiment,
+                target: trustpilotTarget,
+                urls: trustpilotUrls,
+                color: "#00B67A",
+              },
+              {
+                name: "Google Reviews",
+                icon: MapPin,
+                sentiment: googleReviewsSentiment,
+                target: googleReviewsTarget,
+                urls: googleReviewsUrls,
+                color: "#4285F4",
+              },
+            ].map((platform) => (
+              <div
+                key={platform.name}
+                className="p-6 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl" style={{ backgroundColor: `${platform.color}20` }}>
+                      <platform.icon className="h-5 w-5" style={{ color: platform.color }} />
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10">
-                      <Star className="h-4 w-4 text-yellow-600 fill-yellow-600" />
-                      <span className="text-sm font-bold text-yellow-600">
-                        {platform.rating}
-                      </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">
+                        {platform.name}
+                      </h3>
+                      {platform.target && (
+                        <p className="text-xs text-muted-foreground truncate max-w-[150px]" title={platform.target.name}>
+                          {platform.target.name || platform.target.sanitized_name}
+                        </p>
+                      )}
                     </div>
                   </div>
+                  {platform.sentiment && (
+                    <div className="text-right">
+                      <p className="text-xl font-bold">{formatNumber(platform.sentiment.total_analyzed)}</p>
+                      <p className="text-xs text-muted-foreground">Reviews</p>
+                    </div>
+                  )}
+                </div>
 
+                {platform.sentiment ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
                       <div className="flex items-center gap-2">
@@ -272,7 +341,7 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-cyan-600">
-                        {formatNumber(platform.positive)}
+                        {platform.sentiment.positive_count} ({platform.sentiment.positive_pct}%)
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
@@ -283,7 +352,7 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-purple-600">
-                        {formatNumber(platform.neutral)}
+                        {platform.sentiment.neutral_count} ({platform.sentiment.neutral_pct}%)
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
@@ -294,20 +363,29 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-slate-600">
-                        {formatNumber(platform.negative)}
+                        {platform.sentiment.negative_count} ({platform.sentiment.negative_pct}%)
                       </span>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Feedback Topics & Overall Sentiment */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Feedback Topics & Themes - 2/3 width */}
-          <Card className="lg:col-span-2 rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+
+
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-muted-foreground text-sm">
+                    No data available
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Feedback Topics & Overall Sentiment */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Feedback Topics & Themes - 2/3 width */}
+        <DemoDataWrapper className="lg:col-span-2">
+          <Card className="h-full rounded-3xl border border-border/60 bg-card/90 shadow-sm">
             <CardHeader>
               <CardTitle className="text-xl">Feedback Topics & Themes</CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -374,12 +452,14 @@ export default function WebsiteSentimentTab({
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </DemoDataWrapper>
 
-          {/* Overall Sentiment Distribution - 1/3 width */}
-          <SentimentDonutChart data={sentimentData} />
-        </div>
+        {/* Overall Sentiment Distribution - 1/3 width */}
+        <SentimentDonutChart data={sentimentData} />
+      </div>
 
-        {/* Word Frequency by Sentiment */}
+      {/* Word Frequency by Sentiment */}
+      <DemoDataWrapper>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Positive Words */}
           <Card className="rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 via-card to-card shadow-sm">
@@ -496,7 +576,7 @@ export default function WebsiteSentimentTab({
             </CardContent>
           </Card>
         </div>
-      </div>
-    </DemoDataWrapper>
+      </DemoDataWrapper>
+    </div>
   );
 }
