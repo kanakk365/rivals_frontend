@@ -578,9 +578,9 @@ export default function SocialMediaSentimentTab({
     const matchingCompany = companies.find(
       (c) =>
         c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
-        companySlug.toLowerCase() ||
+          companySlug.toLowerCase() ||
         c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
-        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase()),
     );
 
     if (matchingCompany) {
@@ -604,9 +604,9 @@ export default function SocialMediaSentimentTab({
     const matchingCompany = companies.find(
       (c) =>
         c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
-        companySlug.toLowerCase() ||
+          companySlug.toLowerCase() ||
         c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
-        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase()),
     );
 
     const domain = matchingCompany
@@ -627,7 +627,7 @@ export default function SocialMediaSentimentTab({
 
   const parseFollowers = (str: string | number | null | undefined): number => {
     if (!str) return 0;
-    if (typeof str === 'number') return str;
+    if (typeof str === "number") return str;
     const stringValue = String(str);
     const num = parseFloat(stringValue.replace(/[^0-9.]/g, ""));
     if (stringValue.includes("M")) return num * 1000000;
@@ -687,7 +687,9 @@ export default function SocialMediaSentimentTab({
     {
       name: "YouTube",
       icon: Youtube,
-      followers: youtubeData?.statistics ? parseInt(youtubeData.statistics.subscriberCount) : null,
+      followers: youtubeData?.statistics
+        ? parseInt(youtubeData.statistics.subscriberCount)
+        : null,
       totalPosts: youtubeData?.statistics?.totalPosts || null,
       growth: youtubeData ? 18.9 : null,
       color: "hsl(0, 100%, 50%)",
@@ -699,17 +701,20 @@ export default function SocialMediaSentimentTab({
   ];
 
   // Filter to only include platforms with actual data
-  const dynamicPlatforms = allPlatformsRaw.filter(p => p.hasData);
+  const dynamicPlatforms = allPlatformsRaw.filter((p) => p.hasData);
 
   // Calculate total followers from API data (only from platforms with data)
-  const totalFollowers = dynamicPlatforms.reduce((sum, p) => sum + (p.followers || 0), 0);
+  const totalFollowers = dynamicPlatforms.reduce(
+    (sum, p) => sum + (p.followers || 0),
+    0,
+  );
 
   // Check if we have any platform data at all
   const hasAnyPlatformData = dynamicPlatforms.length > 0;
 
   const currentPlatformData =
     socialMediaData.platformMetrics[
-    selectedPlatform as keyof typeof socialMediaData.platformMetrics
+      selectedPlatform as keyof typeof socialMediaData.platformMetrics
     ];
 
   // Get the metrics for the currently selected platform from API
@@ -735,7 +740,12 @@ export default function SocialMediaSentimentTab({
   // Generate bar chart data from API metrics - showing all platforms together
   const getAllPlatformsChartData = () => {
     // Check if we have any metrics data
-    const hasAnyMetrics = instagramMetrics || twitterMetrics || youtubeMetrics || facebookMetrics || linkedinMetrics;
+    const hasAnyMetrics =
+      instagramMetrics ||
+      twitterMetrics ||
+      youtubeMetrics ||
+      facebookMetrics ||
+      linkedinMetrics;
 
     if (!hasAnyMetrics) {
       return null;
@@ -795,27 +805,41 @@ export default function SocialMediaSentimentTab({
 
   const totalEngagement = allPlatformMetrics.reduce(
     (sum, m) => sum + (m?.totalEngagement || 0),
-    0
+    0,
   );
 
   const totalVideoViews = allPlatformMetrics.reduce(
     (sum, m) => sum + (m?.videoViewCount || 0),
-    0
+    0,
   );
 
   const averageEngagementRate =
     allPlatformMetrics.length > 0
-      ? allPlatformMetrics.reduce((sum, m) => sum + (m?.engagementRate || 0), 0) /
-      allPlatformMetrics.length
+      ? allPlatformMetrics.reduce(
+          (sum, m) => sum + (m?.engagementRate || 0),
+          0,
+        ) / allPlatformMetrics.length
       : socialMediaData.overview.engagementRate;
 
   // Generate overall sentiment data from API (Reddit, Trustpilot, Google Reviews)
   const getOverallSentimentChartData = () => {
     if (overallSentiment) {
       return [
-        { name: "Positive", value: overallSentiment.positive_pct, color: "#64b5f6" },
-        { name: "Neutral", value: overallSentiment.neutral_pct, color: "#a48fff" },
-        { name: "Negative", value: overallSentiment.negative_pct, color: "#ff79c6" },
+        {
+          name: "Positive",
+          value: overallSentiment.positive_pct,
+          color: "#64b5f6",
+        },
+        {
+          name: "Neutral",
+          value: overallSentiment.neutral_pct,
+          color: "#a48fff",
+        },
+        {
+          name: "Negative",
+          value: overallSentiment.negative_pct,
+          color: "#ff79c6",
+        },
       ];
     }
     // Fallback to mock data from the current platform
@@ -846,7 +870,8 @@ export default function SocialMediaSentimentTab({
                   {formatNumber(totalFollowers)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Across {dynamicPlatforms.length} platform{dynamicPlatforms.length > 1 ? 's' : ''}
+                  Across {dynamicPlatforms.length} platform
+                  {dynamicPlatforms.length > 1 ? "s" : ""}
                 </p>
               </>
             ) : (
@@ -900,10 +925,12 @@ export default function SocialMediaSentimentTab({
             </div>
           </CardHeader>
           <CardContent>
-            {(totalVideoViews > 0 || totalEngagement > 0) ? (
+            {totalVideoViews > 0 || totalEngagement > 0 ? (
               <>
                 <p className="text-4xl font-bold text-foreground">
-                  {formatNumber(totalVideoViews > 0 ? totalVideoViews : totalEngagement)}
+                  {formatNumber(
+                    totalVideoViews > 0 ? totalVideoViews : totalEngagement,
+                  )}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Aggregated from all platforms
@@ -991,10 +1018,14 @@ export default function SocialMediaSentimentTab({
                           </div>
                         </td>
                         <td className="py-4 px-4 text-right font-semibold text-foreground">
-                          {platform.followers ? formatNumber(platform.followers) : "—"}
+                          {platform.followers
+                            ? formatNumber(platform.followers)
+                            : "—"}
                         </td>
                         <td className="py-4 px-4 text-right font-semibold text-foreground">
-                          {platform.totalPosts ? platform.totalPosts.toLocaleString() : "—"}
+                          {platform.totalPosts
+                            ? platform.totalPosts.toLocaleString()
+                            : "—"}
                         </td>
                         <td className="py-4 px-4 text-right">
                           {platform.growth ? (
@@ -1022,35 +1053,12 @@ export default function SocialMediaSentimentTab({
       </Card>
 
       {/* Social Media Growth Chart */}
-      <DemoDataWrapper>
+      {/* <DemoDataWrapper>
         <SocialMediaGrowthChart
           data={socialMediaData.growthData}
           platforms={socialMediaData.platforms}
         />
-      </DemoDataWrapper>
-
-      {/* Platform Selector - Show all platforms for selection */}
-      <div className="flex flex-wrap gap-3">
-        {allPlatformsRaw.map((platform) => {
-          const Icon = platform.icon;
-          return (
-            <button
-              key={platform.name}
-              onClick={() => setSelectedPlatform(platform.name)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${selectedPlatform === platform.name
-                ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
-                : "bg-card border border-border/60 text-foreground hover:border-primary/50"
-                } ${!platform.hasData ? "opacity-50" : ""}`}
-            >
-              <Icon className="h-5 w-5" />
-              {platform.name}
-              {platform.verified && (
-                <CheckCircle className="h-4 w-4" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      </DemoDataWrapper> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Platform-Specific Metrics - 2/3 width */}
@@ -1059,7 +1067,9 @@ export default function SocialMediaSentimentTab({
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl">
-                  {allPlatformsChartData ? "All Platforms Performance" : `${selectedPlatform} Performance`}
+                  {allPlatformsChartData
+                    ? "All Platforms Performance"
+                    : `${selectedPlatform} Performance`}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {allPlatformsChartData
@@ -1152,7 +1162,9 @@ export default function SocialMediaSentimentTab({
               <div className="flex flex-col items-center justify-center h-[350px] gap-2 text-muted-foreground">
                 <AlertCircle className="h-12 w-12" />
                 <p className="text-lg font-medium">Not enough data available</p>
-                <p className="text-sm">Performance metrics will appear once data is collected</p>
+                <p className="text-sm">
+                  Performance metrics will appear once data is collected
+                </p>
               </div>
             )}
           </CardContent>
@@ -1160,6 +1172,28 @@ export default function SocialMediaSentimentTab({
 
         {/* Overall Sentiment - 1/3 width (from Reddit, Trustpilot, Google Reviews) */}
         <SentimentDonutChart data={overallSentimentChartData} />
+      </div>
+
+      {/* Platform Selector - Show all platforms for selection */}
+      <div className="flex flex-wrap gap-3">
+        {allPlatformsRaw.map((platform) => {
+          const Icon = platform.icon;
+          return (
+            <button
+              key={platform.name}
+              onClick={() => setSelectedPlatform(platform.name)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
+                selectedPlatform === platform.name
+                  ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
+                  : "bg-card border border-border/60 text-foreground hover:border-primary/50"
+              } ${!platform.hasData ? "opacity-50" : ""}`}
+            >
+              <Icon className="h-5 w-5" />
+              {platform.name}
+              {platform.verified && <CheckCircle className="h-4 w-4" />}
+            </button>
+          );
+        })}
       </div>
 
       {/* Recent Posts */}
@@ -1221,11 +1255,14 @@ export default function SocialMediaSentimentTab({
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(post.post_timestamp).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {new Date(post.post_timestamp).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </p>
                   </div>
                 </a>
@@ -1236,7 +1273,10 @@ export default function SocialMediaSentimentTab({
             <div className="flex flex-col items-center justify-center h-64 gap-2 text-muted-foreground">
               <AlertCircle className="h-12 w-12" />
               <p className="text-lg font-medium">Not enough data available</p>
-              <p className="text-sm">Recent posts will appear once data is collected for {selectedPlatform}</p>
+              <p className="text-sm">
+                Recent posts will appear once data is collected for{" "}
+                {selectedPlatform}
+              </p>
             </div>
           )}
         </CardContent>

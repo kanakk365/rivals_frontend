@@ -37,15 +37,10 @@ class ApiClient {
   }
 
   private handleUnauthorized(): void {
-    // Clear tokens
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("token_type");
-
-      // Show error message
       toast.error("Session expired. Please login again.");
-
-      // Redirect to login
       window.location.href = "/login";
     }
   }
@@ -82,11 +77,9 @@ class ApiClient {
         };
       }
 
-      // Handle other error statuses
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
-        // Handle validation errors (422)
         if (response.status === 422 && errorData.detail) {
           if (Array.isArray(errorData.detail)) {
             const errorMessages = errorData.detail
@@ -110,7 +103,6 @@ class ApiClient {
         };
       }
 
-      // Parse successful response
       const data = await response.json();
       return {
         data,

@@ -381,9 +381,7 @@ export default function WebsiteSentimentTab({
         </CardContent>
       </Card>
 
-      {/* Feedback Topics & Overall Sentiment */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Feedback Topics & Themes - 2/3 width */}
         <DemoDataWrapper className="lg:col-span-2">
           <Card className="h-full rounded-3xl border border-border/60 bg-card/90 shadow-sm">
             <CardHeader>
