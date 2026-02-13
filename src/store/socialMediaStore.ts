@@ -158,7 +158,7 @@ export interface PlatformMetrics {
   postsCount: number;
 }
 
-// Review Posts Statistics types (job_id: 12=Reddit, 13=Trustpilot, 14=Google Reviews)
+// Review Posts Statistics types (job_id: 12=Reddit, 13=Trustpilot, 14=Google Reviews, 16=Yelp Reviews)
 export interface ReviewTarget {
   type: string;
   name: string;
@@ -261,7 +261,7 @@ interface SocialMediaState {
   facebookMetrics: PlatformMetrics | null;
   linkedinMetrics: PlatformMetrics | null;
   metricsLoading: boolean;
-  // Review sentiment data (Reddit, Trustpilot, Google Reviews)
+  // Review sentiment data (Reddit, Trustpilot, Google Reviews, Yelp Reviews)
   redditSentiment: SentimentSummary | null;
   redditTarget: ReviewTarget | null;
   redditUrls: string[];
@@ -271,6 +271,9 @@ interface SocialMediaState {
   googleReviewsSentiment: SentimentSummary | null;
   googleReviewsTarget: ReviewTarget | null;
   googleReviewsUrls: string[];
+  yelpReviewsSentiment: SentimentSummary | null;
+  yelpReviewsTarget: ReviewTarget | null;
+  yelpReviewsUrls: string[];
   overallSentiment: OverallSentiment | null;
   sentimentLoading: boolean;
   // Social posts list state
@@ -333,6 +336,9 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
   googleReviewsSentiment: null,
   googleReviewsTarget: null,
   googleReviewsUrls: [],
+  yelpReviewsSentiment: null,
+  yelpReviewsTarget: null,
+  yelpReviewsUrls: [],
   overallSentiment: null,
   sentimentLoading: false,
   // Social posts state
@@ -699,6 +705,13 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
           googleReviewsUrls: data.review_urls,
         });
         break;
+      case 16:
+        set({
+          yelpReviewsSentiment: data.sentiment_summary,
+          yelpReviewsTarget: data.target,
+          yelpReviewsUrls: data.review_urls,
+        });
+        break;
     }
   },
 
@@ -706,20 +719,26 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
     set({ sentimentLoading: true });
     const { fetchReviewSentiment } = get();
 
-    // Fetch sentiment for all review platforms (job_ids 12-14)
+    // Fetch sentiment for all review platforms (job_ids 12-14, 16)
     await Promise.all([
       fetchReviewSentiment(domain, 12), // Reddit
       fetchReviewSentiment(domain, 13), // Trustpilot
       fetchReviewSentiment(domain, 14), // Google Reviews
+      fetchReviewSentiment(domain, 16), // Yelp Reviews
     ]);
 
     // Calculate overall sentiment from all platforms
-    const { redditSentiment, trustpilotSentiment, googleReviewsSentiment } =
-      get();
+    const {
+      redditSentiment,
+      trustpilotSentiment,
+      googleReviewsSentiment,
+      yelpReviewsSentiment,
+    } = get();
     const sentiments = [
       redditSentiment,
       trustpilotSentiment,
       googleReviewsSentiment,
+      yelpReviewsSentiment,
     ].filter(Boolean) as SentimentSummary[];
 
     if (sentiments.length > 0) {
@@ -820,6 +839,9 @@ export const useSocialMediaStore = create<SocialMediaStore>((set, get) => ({
       googleReviewsSentiment: null,
       googleReviewsTarget: null,
       googleReviewsUrls: [],
+      yelpReviewsSentiment: null,
+      yelpReviewsTarget: null,
+      yelpReviewsUrls: [],
       overallSentiment: null,
       sentimentLoading: false,
       socialPosts: [],

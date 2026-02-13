@@ -116,6 +116,9 @@ export default function WebsiteSentimentTab({
     googleReviewsSentiment,
     googleReviewsTarget,
     googleReviewsUrls,
+    yelpReviewsSentiment,
+    yelpReviewsTarget,
+    yelpReviewsUrls,
     fetchAllReviewSentiments,
     sentimentLoading,
     overallSentiment,
@@ -153,9 +156,9 @@ export default function WebsiteSentimentTab({
     const matchingCompany = companies.find(
       (c) =>
         c.brand_name.toLowerCase().replace(/\s+/g, "-") ===
-        companySlug.toLowerCase() ||
+          companySlug.toLowerCase() ||
         c.domain.toLowerCase().includes(companySlug.toLowerCase()) ||
-        companySlug.toLowerCase().includes(c.brand_name.toLowerCase())
+        companySlug.toLowerCase().includes(c.brand_name.toLowerCase()),
     );
 
     if (matchingCompany) {
@@ -174,10 +177,13 @@ export default function WebsiteSentimentTab({
             Review Sentiment Analysis
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Aggregated sentiment from Reddit, Trustpilot, and Google Reviews
+            Aggregated sentiment from Reddit, Trustpilot, Google Reviews, and
+            Yelp
           </p>
         </div>
-        {sentimentLoading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
+        {sentimentLoading && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {/* Total Feedback Overview (Real Data) */}
@@ -219,7 +225,14 @@ export default function WebsiteSentimentTab({
               {formatNumber(overallSentiment?.positive_count || 0)}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed ? ((overallSentiment.positive_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+              {overallSentiment?.total_analyzed
+                ? (
+                    (overallSentiment.positive_count /
+                      overallSentiment.total_analyzed) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -240,7 +253,14 @@ export default function WebsiteSentimentTab({
               {formatNumber(overallSentiment?.neutral_count || 0)}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed ? ((overallSentiment.neutral_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+              {overallSentiment?.total_analyzed
+                ? (
+                    (overallSentiment.neutral_count /
+                      overallSentiment.total_analyzed) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -261,7 +281,14 @@ export default function WebsiteSentimentTab({
               {formatNumber(overallSentiment?.negative_count || 0)}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed ? ((overallSentiment.negative_count / overallSentiment.total_analyzed) * 100).toFixed(1) : "0.0"}% of total
+              {overallSentiment?.total_analyzed
+                ? (
+                    (overallSentiment.negative_count /
+                      overallSentiment.total_analyzed) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              % of total
             </p>
           </CardContent>
         </Card>
@@ -276,7 +303,7 @@ export default function WebsiteSentimentTab({
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {[
               {
                 name: "Reddit",
@@ -302,6 +329,14 @@ export default function WebsiteSentimentTab({
                 urls: googleReviewsUrls,
                 color: "#4285F4",
               },
+              {
+                name: "Yelp Reviews",
+                icon: Star,
+                sentiment: yelpReviewsSentiment,
+                target: yelpReviewsTarget,
+                urls: yelpReviewsUrls,
+                color: "#D32323",
+              },
             ].map((platform) => (
               <div
                 key={platform.name}
@@ -309,23 +344,35 @@ export default function WebsiteSentimentTab({
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl" style={{ backgroundColor: `${platform.color}20` }}>
-                      <platform.icon className="h-5 w-5" style={{ color: platform.color }} />
+                    <div
+                      className="p-2 rounded-xl"
+                      style={{ backgroundColor: `${platform.color}20` }}
+                    >
+                      <platform.icon
+                        className="h-5 w-5"
+                        style={{ color: platform.color }}
+                      />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground">
                         {platform.name}
                       </h3>
                       {platform.target && (
-                        <p className="text-xs text-muted-foreground truncate max-w-[150px]" title={platform.target.name}>
-                          {platform.target.name || platform.target.sanitized_name}
+                        <p
+                          className="text-xs text-muted-foreground truncate max-w-[150px]"
+                          title={platform.target.name}
+                        >
+                          {platform.target.name ||
+                            platform.target.sanitized_name}
                         </p>
                       )}
                     </div>
                   </div>
                   {platform.sentiment && (
                     <div className="text-right">
-                      <p className="text-xl font-bold">{formatNumber(platform.sentiment.total_analyzed)}</p>
+                      <p className="text-xl font-bold">
+                        {formatNumber(platform.sentiment.total_analyzed)}
+                      </p>
                       <p className="text-xs text-muted-foreground">Reviews</p>
                     </div>
                   )}
@@ -341,7 +388,8 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-cyan-600">
-                        {platform.sentiment.positive_count} ({platform.sentiment.positive_pct}%)
+                        {platform.sentiment.positive_count} (
+                        {platform.sentiment.positive_pct}%)
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
@@ -352,7 +400,8 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-purple-600">
-                        {platform.sentiment.neutral_count} ({platform.sentiment.neutral_pct}%)
+                        {platform.sentiment.neutral_count} (
+                        {platform.sentiment.neutral_pct}%)
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
@@ -363,12 +412,10 @@ export default function WebsiteSentimentTab({
                         </span>
                       </div>
                       <span className="text-sm font-bold text-slate-600">
-                        {platform.sentiment.negative_count} ({platform.sentiment.negative_pct}%)
+                        {platform.sentiment.negative_count} (
+                        {platform.sentiment.negative_pct}%)
                       </span>
                     </div>
-
-
-
                   </div>
                 ) : (
                   <div className="py-8 text-center text-muted-foreground text-sm">
@@ -385,7 +432,9 @@ export default function WebsiteSentimentTab({
         <DemoDataWrapper className="lg:col-span-2">
           <Card className="h-full rounded-3xl border border-border/60 bg-card/90 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Feedback Topics & Themes</CardTitle>
+              <CardTitle className="text-xl">
+                Feedback Topics & Themes
+              </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Common themes mentioned in employee reviews
               </p>
@@ -436,11 +485,7 @@ export default function WebsiteSentimentTab({
                     fill="#64b5f6"
                     radius={[8, 8, 0, 0]}
                   />
-                  <Bar
-                    dataKey="neutral"
-                    fill="#a48fff"
-                    radius={[8, 8, 0, 0]}
-                  />
+                  <Bar dataKey="neutral" fill="#a48fff" radius={[8, 8, 0, 0]} />
                   <Bar
                     dataKey="negative"
                     fill="#ff79c6"
@@ -492,7 +537,7 @@ export default function WebsiteSentimentTab({
                         {formatNumber(item.count)}
                       </span>
                     </div>
-                  )
+                  ),
                 )}
               </div>
             </CardContent>
@@ -513,24 +558,26 @@ export default function WebsiteSentimentTab({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {websiteSentimentData.wordFrequency.neutral.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
-                        #{index + 1}
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {item.word}
+                {websiteSentimentData.wordFrequency.neutral.map(
+                  (item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
+                          #{index + 1}
+                        </span>
+                        <span className="font-semibold text-foreground">
+                          {item.word}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-purple-600">
+                        {formatNumber(item.count)}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-purple-600">
-                      {formatNumber(item.count)}
-                    </span>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </CardContent>
           </Card>
@@ -568,7 +615,7 @@ export default function WebsiteSentimentTab({
                         {formatNumber(item.count)}
                       </span>
                     </div>
-                  )
+                  ),
                 )}
               </div>
             </CardContent>
