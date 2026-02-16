@@ -18,11 +18,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { ClippedAreaChart } from "./ClippedAreaChart";
-import { SentimentDonutChart } from "./SentimentDonutChart";
+
 import { cn } from "@/lib/utils";
 import { useCompanyDataStore } from "@/store/companyDataStore";
 import { useCompaniesStore } from "@/store/companiesStore";
 import { useFundraisingStore } from "@/store/fundraisingStore";
+import { useRevenueStore } from "@/store/revenueStore";
 import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
 
 interface OverviewTabProps {
@@ -37,11 +38,6 @@ const getFallbackData = () => ({
     growthRate: 15.3,
     topRoles: ["Barista", "Store Manager", "Software Engineer"],
   },
-  sentiment: [
-    { name: "Positive", value: 65, color: "#64b5f6" },
-    { name: "Neutral", value: 25, color: "#a48fff" },
-    { name: "Negative", value: 10, color: "#ff79c6" },
-  ],
 });
 
 export default function OverviewTab({
@@ -58,6 +54,13 @@ export default function OverviewTab({
     fetchFundraising,
     clearFundraising,
   } = useFundraisingStore();
+  const {
+    revenueData,
+    isLoading: isRevenueLoading,
+    error: revenueError,
+    fetchRevenue,
+    clearRevenue,
+  } = useRevenueStore();
   const fallbackData = getFallbackData();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showAllRounds, setShowAllRounds] = useState(false);
@@ -87,9 +90,15 @@ export default function OverviewTab({
     // Fetch fundraising data
     fetchFundraising(domain);
 
+    // Fetch revenue data
+    // eslint-disable-next-line no-console
+    console.log("[OverviewTab] Triggering fetchRevenue for:", domain);
+    fetchRevenue(domain);
+
     return () => {
       clearCompanyData();
       clearFundraising();
+      clearRevenue();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companySlug, companies]);
@@ -612,14 +621,13 @@ export default function OverviewTab({
         </Card>
       </DemoDataWrapper>
 
-      <DemoDataWrapper>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <ClippedAreaChart />
-          </div>
-          <SentimentDonutChart data={fallbackData.sentiment} />
-        </div>
-      </DemoDataWrapper>
+      <ClippedAreaChart
+        quarters={revenueData?.quarters}
+        summary={revenueData?.summary}
+        symbol={revenueData?.symbol}
+        isLoading={isRevenueLoading}
+        error={revenueError}
+      />
     </div>
   );
 }
