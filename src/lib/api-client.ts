@@ -40,6 +40,9 @@ class ApiClient {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("token_type");
+      // Also clear the auth cookie used by middleware
+      document.cookie =
+        "auth-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       toast.error("Session expired. Please login again.");
       window.location.href = "/login";
     }
@@ -47,7 +50,7 @@ class ApiClient {
 
   async request<T>(
     endpoint: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
     const { requiresAuth = true, headers = {}, ...restConfig } = config;
 
@@ -63,9 +66,7 @@ class ApiClient {
         headers: requestHeaders,
       });
 
-
       if (response.status === 401) {
-
         if (requiresAuth) {
           this.handleUnauthorized();
         }
@@ -122,7 +123,7 @@ class ApiClient {
 
   async get<T>(
     endpoint: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: "GET" });
   }
@@ -130,7 +131,7 @@ class ApiClient {
   async post<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...config,
@@ -142,7 +143,7 @@ class ApiClient {
   async put<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...config,
@@ -154,7 +155,7 @@ class ApiClient {
   async patch<T>(
     endpoint: string,
     body?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...config,
@@ -165,7 +166,7 @@ class ApiClient {
 
   async delete<T>(
     endpoint: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: "DELETE" });
   }

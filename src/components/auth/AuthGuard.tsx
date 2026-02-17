@@ -2,33 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 interface AuthGuardProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
+/**
+ * Auth guard component for protecting route layouts.
+ * Uses the Zustand auth store (which syncs with localStorage + cookies).
+ */
 export default function AuthGuard({ children }: AuthGuardProps) {
-    const router = useRouter();
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+  const [isChecking, setIsChecking] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
+    // Small delay to allow Zustand rehydration
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        // Also check localStorage as fallback
         const token = localStorage.getItem("token");
-
-        if (token) {
-            setIsAuthenticated(true);
-        } else {
-            router.push("/");
+        if (!token) {
+          router.push("/login");
+          return;
         }
-    }, [router]);
+      }
+      setIsChecking(false);
+    }, 100);
 
-    if (isAuthenticated === null) {
-        return null;
-    }
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, router]);
 
-    if (!isAuthenticated) {
-        return null;
-    }
-    return <>{children}</>;
+  if (isChecking) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
-
-

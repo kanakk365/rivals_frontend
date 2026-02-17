@@ -1,4 +1,4 @@
-export { useAuthStore } from "./authStore";
+export { useAuthStore, type AuthUser } from "./authStore";
 export { useScrapingStore } from "./scrapingStore";
 export { useCompaniesStore, type Company } from "./companiesStore";
 export {
