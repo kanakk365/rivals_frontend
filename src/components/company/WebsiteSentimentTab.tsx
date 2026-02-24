@@ -2,154 +2,60 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  MessageSquare,
-  ThumbsUp,
-  ThumbsDown,
-  Minus,
   TrendingUp,
-  Star,
+  Globe,
+  Activity,
+  Link as LinkIcon,
+  Award,
+  Clock,
   Loader2,
+  MonitorPlay,
+  Share2,
+  ExternalLink,
+  Target,
+  Search,
 } from "lucide-react";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
-import { SentimentDonutChart } from "./SentimentDonutChart";
-import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
-import { useSocialMediaStore } from "@/store/socialMediaStore";
+import { useWebsiteStore } from "@/store/websiteStore";
 import { useCompaniesStore } from "@/store/companiesStore";
-import { useEffect } from "react";
-import { CheckCircle, ExternalLink, MapPin } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { format } from "date-fns";
 
 interface WebsiteSentimentTabProps {
   companySlug: string;
 }
 
-// Mock data - replace with actual API calls
-const websiteSentimentData = {
-  totalFeedback: 8450,
-  sentimentBreakdown: {
-    positive: 5690,
-    neutral: 1920,
-    negative: 840,
-  },
-  platforms: [
-    {
-      name: "Glassdoor",
-      icon: "💼",
-      totalReviews: 4820,
-      rating: 4.2,
-      positive: 3380,
-      neutral: 1050,
-      negative: 390,
-      color: "hsl(142, 76%, 36%)",
-    },
-    {
-      name: "Indeed",
-      icon: "🔍",
-      totalReviews: 3630,
-      rating: 4.0,
-      positive: 2310,
-      neutral: 870,
-      negative: 450,
-      color: "hsl(221, 83%, 53%)",
-    },
-  ],
-  feedbackTopics: [
-    { topic: "Work-Life Balance", positive: 1240, neutral: 340, negative: 120 },
-    { topic: "Company Culture", positive: 1580, neutral: 280, negative: 90 },
-    { topic: "Career Growth", positive: 980, neutral: 520, negative: 180 },
-    { topic: "Management", positive: 720, neutral: 450, negative: 280 },
-    { topic: "Compensation", positive: 890, neutral: 330, negative: 170 },
-    { topic: "Benefits", positive: 1120, neutral: 240, negative: 80 },
-  ],
-  wordFrequency: {
-    positive: [
-      { word: "Great", count: 1240 },
-      { word: "Excellent", count: 980 },
-      { word: "Amazing", count: 850 },
-      { word: "Supportive", count: 720 },
-      { word: "Flexible", count: 680 },
-      { word: "Innovative", count: 620 },
-      { word: "Professional", count: 580 },
-      { word: "Collaborative", count: 540 },
-    ],
-    neutral: [
-      { word: "Average", count: 420 },
-      { word: "Standard", count: 380 },
-      { word: "Typical", count: 340 },
-      { word: "Moderate", count: 290 },
-      { word: "Acceptable", count: 260 },
-      { word: "Decent", count: 240 },
-    ],
-    negative: [
-      { word: "Poor", count: 280 },
-      { word: "Stressful", count: 240 },
-      { word: "Difficult", count: 210 },
-      { word: "Lacking", count: 180 },
-      { word: "Limited", count: 160 },
-      { word: "Disappointing", count: 140 },
-    ],
-  },
-};
+const COLORS = [
+  "#64b5f6",
+  "#81c784",
+  "#ffb74d",
+  "#e57373",
+  "#ba68c8",
+  "#4dd0e1",
+  "#f06292",
+  "#aed581",
+  "#ff8a65",
+  "#7986cb",
+];
 
 export default function WebsiteSentimentTab({
   companySlug,
 }: WebsiteSentimentTabProps) {
-  const {
-    // Review sentiments and targets
-    redditSentiment,
-    redditTarget,
-    redditUrls,
-    trustpilotSentiment,
-    trustpilotTarget,
-    trustpilotUrls,
-    googleReviewsSentiment,
-    googleReviewsTarget,
-    googleReviewsUrls,
-    yelpReviewsSentiment,
-    yelpReviewsTarget,
-    yelpReviewsUrls,
-    fetchAllReviewSentiments,
-    sentimentLoading,
-    overallSentiment,
-  } = useSocialMediaStore();
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
-
-  const sentimentData = [
-    {
-      name: "Positive",
-      value: overallSentiment?.positive_pct || 0,
-      percentage: (overallSentiment?.positive_pct || 0).toFixed(1),
-      color: "#64b5f6",
-    },
-    {
-      name: "Neutral",
-      value: overallSentiment?.neutral_pct || 0,
-      percentage: (overallSentiment?.neutral_pct || 0).toFixed(1),
-      color: "#a48fff",
-    },
-    {
-      name: "Negative",
-      value: overallSentiment?.negative_pct || 0,
-      percentage: (overallSentiment?.negative_pct || 0).toFixed(1),
-      color: "#ff79c6",
-    },
-  ];
-
+  const { seoData, seoDataLoading, fetchSeoData } = useWebsiteStore();
   const { companies } = useCompaniesStore();
 
   useEffect(() => {
@@ -162,50 +68,111 @@ export default function WebsiteSentimentTab({
     );
 
     if (matchingCompany) {
-      fetchAllReviewSentiments(matchingCompany.domain);
+      fetchSeoData(matchingCompany.domain);
     } else {
       const domain = `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
-      fetchAllReviewSentiments(domain);
+      fetchSeoData(domain);
     }
-  }, [companySlug, companies, fetchAllReviewSentiments]);
+  }, [companySlug, companies, fetchSeoData]);
+
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined) return "N/A";
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toLocaleString();
+  };
+
+  const formatSeconds = (seconds: number | null | undefined) => {
+    if (seconds === null || seconds === undefined) return "N/A";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}m ${secs}s`;
+  };
+
+  const trafficSourcesData = useMemo(() => {
+    if (!seoData?.traffic_sources) return [];
+    return seoData.traffic_sources
+      .map((ts) => ({
+        name: ts.source
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        value: ts.value,
+        share: (ts.share * 100).toFixed(1),
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [seoData]);
+
+  const searchTrafficData = useMemo(() => {
+    if (!seoData?.traffic_trend?.search_traffic_history) return [];
+    return [...seoData.traffic_trend.search_traffic_history]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((item) => ({
+        ...item,
+        dateFormatted: format(new Date(item.date), "MMM yyyy"),
+      }));
+  }, [seoData]);
+
+  const visitsData = useMemo(() => {
+    if (!seoData?.traffic_trend?.visits_history) return [];
+    return [...seoData.traffic_trend.visits_history]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((item) => ({
+        ...item,
+        dateFormatted: format(new Date(item.date), "MMM yyyy"),
+      }));
+  }, [seoData]);
+
+  if (seoDataLoading && !seoData) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!seoData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+        <Globe className="h-12 w-12 mb-4 opacity-20" />
+        <p>No SEO data available for this company.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent w-fit">
-            Review Sentiment Analysis
+            Website & SEO Analytics
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Aggregated sentiment from Reddit, Trustpilot, Google Reviews, and
-            Yelp
+            Comprehensive traffic, engagement, and visibility metrics
           </p>
         </div>
-        {sentimentLoading && (
+        {seoDataLoading && (
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         )}
       </div>
 
-      {/* Total Feedback Overview (Real Data) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/20">
-                <MessageSquare className="h-5 w-5 text-primary" />
+                <Globe className="h-5 w-5 text-primary" />
               </div>
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Total Feedback
+                Total Traffic
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-foreground">
-              {formatNumber(overallSentiment?.total_analyzed || 0)}
+              {formatNumber(seoData.website_overview.total_traffic)}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Across all platforms
-            </p>
+            <p className="text-sm text-muted-foreground mt-2">Monthly visits</p>
           </CardContent>
         </Card>
 
@@ -213,26 +180,19 @@ export default function WebsiteSentimentTab({
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-cyan-500/20">
-                <ThumbsUp className="h-5 w-5 text-cyan-600" />
+                <Award className="h-5 w-5 text-cyan-600" />
               </div>
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Positive
+                Domain Authority
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-cyan-600">
-              {formatNumber(overallSentiment?.positive_count || 0)}
+              {seoData.seo_performance.domain_authority || "N/A"}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed
-                ? (
-                    (overallSentiment.positive_count /
-                      overallSentiment.total_analyzed) *
-                    100
-                  ).toFixed(1)
-                : "0.0"}
-              % of total
+              SEO strength score
             </p>
           </CardContent>
         </Card>
@@ -241,387 +201,393 @@ export default function WebsiteSentimentTab({
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-purple-500/20">
-                <Minus className="h-5 w-5 text-purple-600" />
+                <Clock className="h-5 w-5 text-purple-600" />
               </div>
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Neutral
+                Avg. Session
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-purple-600">
-              {formatNumber(overallSentiment?.neutral_count || 0)}
+              {formatSeconds(seoData.website_overview.avg_session_seconds)}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed
-                ? (
-                    (overallSentiment.neutral_count /
-                      overallSentiment.total_analyzed) *
-                    100
-                  ).toFixed(1)
-                : "0.0"}
-              % of total
+              Time spent on site
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-slate-500/10 via-card to-card shadow-lg">
+        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-orange-500/10 via-card to-card shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-slate-500/20">
-                <ThumbsDown className="h-5 w-5 text-slate-600" />
+              <div className="p-2 rounded-xl bg-orange-500/20">
+                <Activity className="h-5 w-5 text-orange-600" />
               </div>
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Negative
+                Bounce Rate
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-slate-600">
-              {formatNumber(overallSentiment?.negative_count || 0)}
+            <p className="text-4xl font-bold text-orange-600">
+              {seoData.website_overview.bounce_rate
+                ? `${(seoData.website_overview.bounce_rate * 100).toFixed(1)}%`
+                : "N/A"}
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {overallSentiment?.total_analyzed
-                ? (
-                    (overallSentiment.negative_count /
-                      overallSentiment.total_analyzed) *
-                    100
-                  ).toFixed(1)
-                : "0.0"}
-              % of total
+              Single-page visits
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Platform Breakdown (Real Data) */}
-      <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Platform Breakdown</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Feedback distribution across different platforms
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {[
-              {
-                name: "Reddit",
-                icon: MessageSquare,
-                sentiment: redditSentiment,
-                target: redditTarget,
-                urls: redditUrls,
-                color: "#FF4500",
-              },
-              {
-                name: "Trustpilot",
-                icon: Star,
-                sentiment: trustpilotSentiment,
-                target: trustpilotTarget,
-                urls: trustpilotUrls,
-                color: "#00B67A",
-              },
-              {
-                name: "Google Reviews",
-                icon: MapPin,
-                sentiment: googleReviewsSentiment,
-                target: googleReviewsTarget,
-                urls: googleReviewsUrls,
-                color: "#4285F4",
-              },
-              {
-                name: "Yelp Reviews",
-                icon: Star,
-                sentiment: yelpReviewsSentiment,
-                target: yelpReviewsTarget,
-                urls: yelpReviewsUrls,
-                color: "#D32323",
-              },
-            ].map((platform) => (
-              <div
-                key={platform.name}
-                className="p-6 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-border/40"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="p-2 rounded-xl"
-                      style={{ backgroundColor: `${platform.color}20` }}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Visits History Chart */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Visits Trend
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Monthly traffic over time
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={visitsData}>
+                  <defs>
+                    <linearGradient
+                      id="colorVisits"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
                     >
-                      <platform.icon
-                        className="h-5 w-5"
-                        style={{ color: platform.color }}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-foreground">
-                        {platform.name}
-                      </h3>
-                      {platform.target && (
-                        <p
-                          className="text-xs text-muted-foreground truncate max-w-[150px]"
-                          title={platform.target.name}
-                        >
-                          {platform.target.name ||
-                            platform.target.sanitized_name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {platform.sentiment && (
-                    <div className="text-right">
-                      <p className="text-xl font-bold">
-                        {formatNumber(platform.sentiment.total_analyzed)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Reviews</p>
-                    </div>
-                  )}
-                </div>
-
-                {platform.sentiment ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
-                      <div className="flex items-center gap-2">
-                        <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">
-                          Positive
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-cyan-600">
-                        {platform.sentiment.positive_count} (
-                        {platform.sentiment.positive_pct}%)
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
-                      <div className="flex items-center gap-2">
-                        <Minus className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">
-                          Neutral
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-purple-600">
-                        {platform.sentiment.neutral_count} (
-                        {platform.sentiment.neutral_pct}%)
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-accent/5">
-                      <div className="flex items-center gap-2">
-                        <ThumbsDown className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">
-                          Negative
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-slate-600">
-                        {platform.sentiment.negative_count} (
-                        {platform.sentiment.negative_pct}%)
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-8 text-center text-muted-foreground text-sm">
-                    No data available
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <DemoDataWrapper className="lg:col-span-2">
-          <Card className="h-full rounded-3xl border border-border/60 bg-card/90 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">
-                Feedback Topics & Themes
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Common themes mentioned in employee reviews
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={websiteSentimentData.feedbackTopics}>
+                      <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                    opacity={0.3}
+                    opacity={0.2}
+                    vertical={false}
                   />
                   <XAxis
-                    dataKey="topic"
+                    dataKey="dateFormatted"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
-                    angle={-45}
-                    textAnchor="end"
-                    height={100}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
-                    tickFormatter={(value) => formatNumber(value)}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val) => formatNumber(val)}
                   />
                   <Tooltip
-                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
                     contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
                       borderRadius: "12px",
-                      padding: "12px",
+                      border: "1px solid hsl(var(--border))",
+                      backgroundColor: "hsl(var(--card))",
                     }}
-                    formatter={(value: number) => formatNumber(value)}
+                    formatter={(val: number) => [
+                      val.toLocaleString(),
+                      "Visits",
+                    ]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#818cf8"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorVisits)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Traffic Sources Pie Chart */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Share2 className="h-5 w-5 text-cyan-500" />
+              Traffic Sources
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Distribution by channel
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={trafficSourcesData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {trafficSourcesData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid hsl(var(--border))",
+                      backgroundColor: "hsl(var(--card))",
+                      color: "hsl(var(--foreground))",
+                    }}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    formatter={(val: number, name: string, props: any) => [
+                      `${val.toLocaleString()} (${props.payload.share}%)`,
+                      name,
+                    ]}
                   />
                   <Legend
-                    verticalAlign="top"
-                    height={36}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span className="text-sm text-foreground capitalize">
-                        {value}
-                      </span>
-                    )}
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    wrapperStyle={{ fontSize: "12px" }}
                   />
-                  <Bar
-                    dataKey="positive"
-                    fill="#64b5f6"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar dataKey="neutral" fill="#a48fff" radius={[8, 8, 0, 0]} />
-                  <Bar
-                    dataKey="negative"
-                    fill="#ff79c6"
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </DemoDataWrapper>
-
-        {/* Overall Sentiment Distribution - 1/3 width */}
-        <SentimentDonutChart data={sentimentData} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Word Frequency by Sentiment */}
-      <DemoDataWrapper>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Positive Words */}
-          <Card className="rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 via-card to-card shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ThumbsUp className="h-5 w-5 text-cyan-600" />
-                <CardTitle className="text-lg text-cyan-600">
-                  Positive Keywords
-                </CardTitle>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Most frequent positive words
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {websiteSentimentData.wordFrequency.positive.map(
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
-                          #{index + 1}
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {item.word}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-cyan-600">
-                        {formatNumber(item.count)}
-                      </span>
-                    </div>
-                  ),
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Search Traffic Breakthrough */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Search className="h-5 w-5 text-purple-500" />
+              Search Traffic History
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Organic vs Paid search traffic
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={searchTrafficData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    opacity={0.2}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="dateFormatted"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val) => formatNumber(val)}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "1px solid hsl(var(--border))",
+                      backgroundColor: "hsl(var(--card))",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="organic_traffic" name="Organic" stackId="a" fill="#6366f1" radius={[0, 0, 4, 4]} />
+                  <Bar dataKey="paid_traffic" name="Paid" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Neutral Words */}
-          <Card className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-card to-card shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Minus className="h-5 w-5 text-purple-600" />
-                <CardTitle className="text-lg text-purple-600">
-                  Neutral Keywords
-                </CardTitle>
+        {/* SEO Performance Metrics List */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm flex flex-col">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-amber-500" />
+              SEO KPIs
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Technical SEO health summary
+            </p>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Backlinks
+                </div>
+                <div className="text-2xl font-bold text-foreground">
+                  {formatNumber(seoData.seo_performance.backlinks)}
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Most frequent neutral words
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {websiteSentimentData.wordFrequency.neutral.map(
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
-                          #{index + 1}
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {item.word}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-purple-600">
-                        {formatNumber(item.count)}
-                      </span>
-                    </div>
-                  ),
-                )}
+              <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Ref. Domains
+                </div>
+                <div className="text-2xl font-bold text-foreground">
+                  {formatNumber(seoData.seo_performance.referring_domains)}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Org. Keywords
+                </div>
+                <div className="text-2xl font-bold text-foreground">
+                  {formatNumber(seoData.seo_performance.organic_keywords_count)}
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Indexed Pages
+                </div>
+                <div className="text-2xl font-bold text-foreground">
+                  {formatNumber(seoData.seo_performance.indexed_pages)}
+                </div>
+              </div>
+            </div>
 
-          {/* Negative Words */}
-          <Card className="rounded-3xl border border-slate-500/20 bg-gradient-to-br from-slate-500/5 via-card to-card shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ThumbsDown className="h-5 w-5 text-slate-600" />
-                <CardTitle className="text-lg text-slate-600">
-                  Negative Keywords
-                </CardTitle>
+            <div className="mt-4 p-4 rounded-xl bg-linear-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
+              <div className="flex items-center gap-3">
+                <Target className="h-8 w-8 text-emerald-600" />
+                <div>
+                  <div className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                    Trust Score
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">
+                    {seoData.website_overview.trust_score}%
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Most frequent negative words
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {websiteSentimentData.wordFrequency.negative.map(
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
-                          #{index + 1}
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {item.word}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-slate-600">
-                        {formatNumber(item.count)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Keywords */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">Top Ranking Keywords</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Keywords driving the most engagement
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {seoData.keyword_suggestions?.slice(0, 5).map((kw, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors gap-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 text-xs font-bold text-primary">
+                      {idx + 1}
+                    </span>
+                    <span className="font-medium">{kw.keyword}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex flex-col items-end">
+                      <span className="text-muted-foreground text-xs">Vol</span>
+                      <span className="font-semibold">
+                        {formatNumber(kw.search_volume)}
                       </span>
                     </div>
-                  ),
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </DemoDataWrapper>
+                    <div className="flex flex-col items-end w-16">
+                      <span className="text-muted-foreground text-xs">
+                        Share
+                      </span>
+                      <span className="font-semibold text-primary">
+                        {(kw.traffic_share * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(!seoData.keyword_suggestions ||
+                seoData.keyword_suggestions.length === 0) && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  No keywords found
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Pages */}
+        <Card className="rounded-3xl border border-border/60 bg-card/90 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">Top Performing Pages</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Most visited pages by traffic share
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {seoData.top_performing_pages?.slice(0, 5).map((page, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors gap-2"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden flex-1">
+                    <MonitorPlay className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span
+                      className="font-medium truncate text-sm"
+                      title={page.page}
+                    >
+                      {page.page || "/"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm shrink-0">
+                    <div className="font-semibold">
+                      {formatNumber(page.views)}{" "}
+                      <span className="text-muted-foreground font-normal text-xs ml-1">
+                        views
+                      </span>
+                    </div>
+                    <a
+                      href={page.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center p-1 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-6 w-6"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              ))}
+              {(!seoData.top_performing_pages ||
+                seoData.top_performing_pages.length === 0) && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  No top pages found
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
