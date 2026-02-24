@@ -414,8 +414,20 @@ export default function WebsiteSentimentTab({
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="organic_traffic" name="Organic" stackId="a" fill="#6366f1" radius={[0, 0, 4, 4]} />
-                  <Bar dataKey="paid_traffic" name="Paid" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="organic_traffic"
+                    name="Organic"
+                    stackId="a"
+                    fill="#6366f1"
+                    radius={[0, 0, 4, 4]}
+                  />
+                  <Bar
+                    dataKey="paid_traffic"
+                    name="Paid"
+                    stackId="a"
+                    fill="#8b5cf6"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

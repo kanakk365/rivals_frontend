@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { apiClient } from "@/lib/api-client";
 
-// Keyword suggestion types
 export interface KeywordSuggestion {
   rank: number;
   suggestion: string;
@@ -11,6 +10,30 @@ export interface KeywordSuggestion {
 
 export interface KeywordSuggestionsResponse {
   suggestions: KeywordSuggestion[];
+}
+
+export interface WordCountItem {
+  word: string;
+  count: number;
+}
+
+export interface WordCountResponse {
+  status: string;
+  message: string;
+  domain: string;
+  positive: WordCountItem[];
+  negative: WordCountItem[];
+  neutral: WordCountItem[];
+  metadata: {
+    total_reviews: number;
+    total_words_analyzed: number;
+    unique_positive_words: number;
+    unique_negative_words: number;
+    unique_neutral_words: number;
+    user_id: number;
+    job_ids: number[];
+    generated_at: string;
+  };
 }
 
 export interface SeoData {
@@ -76,11 +99,17 @@ interface WebsiteState {
   seoData: SeoData | null;
   seoDataLoading: boolean;
   seoDataError: string | null;
+
+  // Word Count state
+  wordCountData: WordCountResponse | null;
+  wordCountLoading: boolean;
+  wordCountError: string | null;
 }
 
 interface WebsiteActions {
   fetchKeywordSuggestions: (domain: string) => Promise<void>;
   fetchSeoData: (domain: string) => Promise<void>;
+  fetchWordCountData: (domain: string) => Promise<void>;
   clearWebsiteData: () => void;
 }
 
@@ -95,6 +124,10 @@ export const useWebsiteStore = create<WebsiteStore>((set) => ({
   seoData: null,
   seoDataLoading: false,
   seoDataError: null,
+
+  wordCountData: null,
+  wordCountLoading: false,
+  wordCountError: null,
 
   // Actions
   fetchKeywordSuggestions: async (domain: string) => {
@@ -138,6 +171,26 @@ export const useWebsiteStore = create<WebsiteStore>((set) => ({
     }
   },
 
+  fetchWordCountData: async (domain: string) => {
+    set({ wordCountLoading: true, wordCountError: null });
+
+    const response = await apiClient.get<WordCountResponse>(
+      `/api/frontend/word-count?domain=${encodeURIComponent(domain)}`,
+    );
+
+    if (response.data) {
+      set({
+        wordCountData: response.data,
+        wordCountLoading: false,
+      });
+    } else {
+      set({
+        wordCountLoading: false,
+        wordCountError: response.error || "Failed to fetch word count data",
+      });
+    }
+  },
+
   clearWebsiteData: () => {
     set({
       keywordSuggestions: [],
@@ -146,6 +199,9 @@ export const useWebsiteStore = create<WebsiteStore>((set) => ({
       seoData: null,
       seoDataLoading: false,
       seoDataError: null,
+      wordCountData: null,
+      wordCountLoading: false,
+      wordCountError: null,
     });
   },
 }));

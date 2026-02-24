@@ -13,6 +13,9 @@ import {
   Clock,
   Loader2,
   Hash,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
 } from "lucide-react";
 import {
   LineChart,
@@ -114,6 +117,9 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
     keywordSuggestions,
     keywordSuggestionsLoading,
     fetchKeywordSuggestions,
+    wordCountData,
+    wordCountLoading,
+    fetchWordCountData,
     clearWebsiteData,
   } = useWebsiteStore();
 
@@ -133,11 +139,12 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
       : `${companySlug.toLowerCase().replace(/-/g, "")}.com`;
 
     fetchKeywordSuggestions(domain);
+    fetchWordCountData(domain);
 
     return () => {
       clearWebsiteData();
     };
-  }, [companySlug, companies, fetchKeywordSuggestions, clearWebsiteData]);
+  }, [companySlug, companies, fetchKeywordSuggestions, fetchWordCountData, clearWebsiteData]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -640,6 +647,153 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
             </div>
           </CardContent>
         </Card>
+      </DemoDataWrapper>
+
+      {/* Word Frequency by Sentiment */}
+      <DemoDataWrapper>
+        <div className="flex items-center gap-3 mt-8 mb-4">
+          <Hash className="h-6 w-6 text-primary" />
+          <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+            Word Frequency Analysis
+          </h2>
+          {wordCountLoading && (
+             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground ml-2" />
+          )}
+        </div>
+        
+        {wordCountData ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Positive Words */}
+            <Card className="rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 via-card to-card shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ThumbsUp className="h-5 w-5 text-cyan-600" />
+                  <CardTitle className="text-lg text-cyan-600">
+                    Positive Keywords
+                  </CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Most frequent positive words
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {wordCountData.positive.slice(0, 10).map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            {item.word}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-cyan-600">
+                          {formatNumber(item.count)}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                  {wordCountData.positive.length === 0 && (
+                     <div className="text-center text-sm text-muted-foreground py-4">No positive words found</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Neutral Words */}
+            <Card className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-card to-card shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Minus className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-lg text-purple-600">
+                    Neutral Keywords
+                  </CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Most frequent neutral words
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {wordCountData.neutral.slice(0, 10).map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            {item.word}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-purple-600">
+                          {formatNumber(item.count)}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                  {wordCountData.neutral.length === 0 && (
+                     <div className="text-center text-sm text-muted-foreground py-4">No neutral words found</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Negative Words */}
+            <Card className="rounded-3xl border border-slate-500/20 bg-gradient-to-br from-slate-500/5 via-card to-card shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ThumbsDown className="h-5 w-5 text-slate-600" />
+                  <CardTitle className="text-lg text-slate-600">
+                    Negative Keywords
+                  </CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Most frequent negative words
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {wordCountData.negative.slice(0, 10).map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-xl bg-accent/5 hover:bg-accent/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-muted-foreground bg-accent/10 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground">
+                            {item.word}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-600">
+                          {formatNumber(item.count)}
+                        </span>
+                      </div>
+                    ),
+                  )}
+                  {wordCountData.negative.length === 0 && (
+                     <div className="text-center text-sm text-muted-foreground py-4">No negative words found</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : !wordCountLoading ? (
+            <div className="text-center text-sm text-muted-foreground py-8">
+               No word count analysis available for this domain yet.
+            </div>
+        ) : null}
       </DemoDataWrapper>
     </div>
   );
