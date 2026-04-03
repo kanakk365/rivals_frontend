@@ -776,7 +776,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-foreground">
-                  {formatNumber(seoData.website_overview.total_traffic)}
+                  {formatNumber(seoData.website_overview?.total_traffic || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Monthly visits
@@ -797,7 +797,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-cyan-600">
-                  {seoData.seo_performance.domain_authority || "N/A"}
+                  {seoData.seo_performance?.domain_authority || "N/A"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   SEO strength score
@@ -818,7 +818,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-purple-600">
-                  {formatSeconds(seoData.website_overview.avg_session_seconds)}
+                  {formatSeconds(seoData.website_overview?.avg_session_seconds || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Time spent on site
@@ -839,7 +839,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-orange-600">
-                  {seoData.website_overview.bounce_rate
+                  {seoData.website_overview?.bounce_rate
                     ? `${(seoData.website_overview.bounce_rate * 100).toFixed(1)}%`
                     : "N/A"}
                 </p>
@@ -1068,7 +1068,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                       Backlinks
                     </div>
                     <div className="text-2xl font-bold text-foreground">
-                      {formatNumber(seoData.seo_performance.backlinks)}
+                      {formatNumber(seoData.seo_performance?.backlinks || 0)}
                     </div>
                   </div>
                   <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
@@ -1076,7 +1076,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                       Ref. Domains
                     </div>
                     <div className="text-2xl font-bold text-foreground">
-                      {formatNumber(seoData.seo_performance.referring_domains)}
+                      {formatNumber(seoData.seo_performance?.referring_domains || 0)}
                     </div>
                   </div>
                   <div className="p-4 rounded-xl bg-accent/5 border border-border/40 hover:bg-accent/10 transition-colors">
@@ -1085,7 +1085,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                     </div>
                     <div className="text-2xl font-bold text-foreground">
                       {formatNumber(
-                        seoData.seo_performance.organic_keywords_count,
+                        seoData.seo_performance?.organic_keywords_count || 0,
                       )}
                     </div>
                   </div>
@@ -1094,7 +1094,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                       Indexed Pages
                     </div>
                     <div className="text-2xl font-bold text-foreground">
-                      {formatNumber(seoData.seo_performance.indexed_pages)}
+                      {formatNumber(seoData.seo_performance?.indexed_pages || 0)}
                     </div>
                   </div>
                 </div>
@@ -1107,7 +1107,7 @@ export default function WebsiteTab({ companySlug }: WebsiteTabProps) {
                         Trust Score
                       </div>
                       <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-300">
-                        {seoData.website_overview.trust_score}%
+                        {seoData.website_overview?.trust_score || 0}%
                       </div>
                     </div>
                   </div>

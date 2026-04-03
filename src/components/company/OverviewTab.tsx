@@ -503,7 +503,7 @@ export default function OverviewTab({
         </Card>
       )}
       {!isPickleballLoading &&
-        pickleballData?.payload?.facilities?.length ? (
+        (pickleballData?.payload?.facilities?.length ?? 0) > 0 ? (
           <PickleballPricingSection
             payload={pickleballData.payload}
             generatedAt={pickleballData.generated_at}
