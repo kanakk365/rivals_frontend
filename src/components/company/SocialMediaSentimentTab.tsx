@@ -14,32 +14,24 @@ import {
   Youtube,
   MessageCircle,
   Heart,
-  Share2,
-  Bookmark,
   Loader2,
   CheckCircle,
   ExternalLink,
 } from "lucide-react";
 import {
-  BarChart,
-  Bar,
-  LineChart,
+  ComposedChart,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
-import { SocialMediaGrowthChart } from "./SocialMediaGrowthChart";
 import { SentimentDonutChart } from "./SentimentDonutChart";
 import { useSocialMediaStore, SocialPost } from "@/store/socialMediaStore";
 import { useCompaniesStore } from "@/store/companiesStore";
-import { DemoDataWrapper } from "@/components/ui/DemoDataWrapper";
 
 // Platform to job_id mapping for social posts API
 const platformJobIdMap: Record<string, number> = {
@@ -565,7 +557,6 @@ export default function SocialMediaSentimentTab({
     metricsLoading,
     // Overall sentiment from review APIs (Reddit, Trustpilot, Google Reviews)
     overallSentiment,
-    sentimentLoading,
     // Social posts list
     socialPosts,
     socialPostsLoading,
@@ -717,25 +708,6 @@ export default function SocialMediaSentimentTab({
       selectedPlatform as keyof typeof socialMediaData.platformMetrics
     ];
 
-  // Get the metrics for the currently selected platform from API
-  const getCurrentPlatformMetrics = () => {
-    switch (selectedPlatform) {
-      case "Instagram":
-        return instagramMetrics;
-      case "Twitter":
-        return twitterMetrics;
-      case "YouTube":
-        return youtubeMetrics;
-      case "Facebook":
-        return facebookMetrics;
-      case "LinkedIn":
-        return linkedinMetrics;
-      default:
-        return null;
-    }
-  };
-
-  const currentMetrics = getCurrentPlatformMetrics();
 
   // Generate bar chart data from API metrics - showing all platforms together
   const getAllPlatformsChartData = () => {
@@ -759,6 +731,7 @@ export default function SocialMediaSentimentTab({
         comments: instagramMetrics?.commentsCount || 0,
         views: instagramMetrics?.videoViewCount || 0,
         engagement: instagramMetrics?.totalEngagement || 0,
+        engagementRate: instagramMetrics?.engagementRate || 0,
       },
       {
         platform: "Twitter",
@@ -766,6 +739,7 @@ export default function SocialMediaSentimentTab({
         comments: twitterMetrics?.commentsCount || 0,
         views: twitterMetrics?.videoViewCount || 0,
         engagement: twitterMetrics?.totalEngagement || 0,
+        engagementRate: twitterMetrics?.engagementRate || 0,
       },
       {
         platform: "YouTube",
@@ -773,6 +747,7 @@ export default function SocialMediaSentimentTab({
         comments: youtubeMetrics?.commentsCount || 0,
         views: youtubeMetrics?.videoViewCount || 0,
         engagement: youtubeMetrics?.totalEngagement || 0,
+        engagementRate: youtubeMetrics?.engagementRate || 0,
       },
       {
         platform: "Facebook",
@@ -781,6 +756,7 @@ export default function SocialMediaSentimentTab({
         shares: facebookMetrics?.sharesCount || 0,
         views: facebookMetrics?.videoViewCount || 0,
         engagement: facebookMetrics?.totalEngagement || 0,
+        engagementRate: facebookMetrics?.engagementRate || 0,
       },
       {
         platform: "LinkedIn",
@@ -788,6 +764,7 @@ export default function SocialMediaSentimentTab({
         comments: linkedinMetrics?.commentsCount || 0,
         views: linkedinMetrics?.videoViewCount || 0,
         engagement: linkedinMetrics?.totalEngagement || 0,
+        engagementRate: linkedinMetrics?.engagementRate || 0,
       },
     ];
   };
@@ -852,7 +829,7 @@ export default function SocialMediaSentimentTab({
     <div className="space-y-6">
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+        <Card className="rounded-3xl border border-border/60 bg-linear-to-br from-primary/10 via-card to-card shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/20">
@@ -883,7 +860,7 @@ export default function SocialMediaSentimentTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-accent/10 via-card to-card shadow-lg">
+        <Card className="rounded-3xl border border-border/60 bg-linear-to-br from-accent/10 via-card to-card shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-accent/30">
@@ -913,7 +890,7 @@ export default function SocialMediaSentimentTab({
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg">
+        <Card className="rounded-3xl border border-border/60 bg-linear-to-br from-primary/10 via-card to-card shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-primary/20">
@@ -1095,7 +1072,7 @@ export default function SocialMediaSentimentTab({
             ) : allPlatformsChartData ? (
               // API data chart - shows all platforms together in vertical bars
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={allPlatformsChartData}>
+                <ComposedChart data={allPlatformsChartData}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="hsl(var(--border))"
@@ -1107,55 +1084,90 @@ export default function SocialMediaSentimentTab({
                     fontSize={12}
                   />
                   <YAxis
+                    yAxisId="left"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickFormatter={(value) => formatNumber(value)}
                   />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="hsl(var(--chart-1))"
+                    fontSize={12}
+                    tickFormatter={(value) => formatNumber(value)}
+                  />
                   <Tooltip
-                    cursor={{ fill: "hsl(var(--muted)/0.2)" }}
+                    cursor={{ strokeDasharray: "3 3" }}
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "12px",
                       padding: "12px",
                     }}
-                    formatter={(value: number) => formatNumber(value)}
+                    formatter={(value: number, name: string) => [
+                      formatNumber(value) + (name.includes("Rate") ? "%" : ""),
+                      name,
+                    ]}
                   />
                   <Legend
                     verticalAlign="top"
                     height={36}
-                    iconType="rect"
+                    iconType="circle"
                     formatter={(value) => (
                       <span className="text-sm text-foreground capitalize">
                         {value}
                       </span>
                     )}
                   />
-                  <Bar
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
                     dataKey="likes"
                     name="Likes"
-                    fill="hsl(var(--chart-2))"
-                    radius={[8, 8, 0, 0]}
+                    stroke="hsl(var(--chart-2))"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
                   />
-                  <Bar
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
                     dataKey="comments"
                     name="Comments"
-                    fill="hsl(var(--chart-3))"
-                    radius={[8, 8, 0, 0]}
+                    stroke="hsl(var(--chart-3))"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
                   />
-                  <Bar
-                    dataKey="views"
-                    name="Views"
-                    fill="hsl(var(--chart-1))"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <Bar
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
                     dataKey="engagement"
                     name="Engagement"
                     fill="hsl(var(--chart-4))"
-                    radius={[8, 8, 0, 0]}
+                    stroke="hsl(var(--chart-4))"
+                    fillOpacity={0.1}
+                    strokeWidth={1}
                   />
-                </BarChart>
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="views"
+                    name="Views (Total)"
+                    stroke="hsl(var(--chart-1))"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: "hsl(var(--chart-1))" }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="engagementRate"
+                    name="Eng. Rate %"
+                    stroke="hsl(var(--chart-5, #22c55e))"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
             ) : (
               // No data available
@@ -1184,7 +1196,7 @@ export default function SocialMediaSentimentTab({
               onClick={() => setSelectedPlatform(platform.name)}
               className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
                 selectedPlatform === platform.name
-                  ? "bg-gradient-to-r from-primary to-accent text-white shadow-lg scale-105"
+                  ? "bg-linear-to-r from-primary to-accent text-white shadow-lg scale-105"
                   : "bg-card border border-border/60 text-foreground hover:border-primary/50"
               } ${!platform.hasData ? "opacity-50" : ""}`}
             >
@@ -1219,7 +1231,7 @@ export default function SocialMediaSentimentTab({
                   href={post.post_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-2xl border border-border/60 overflow-hidden bg-gradient-to-br from-card to-accent/5 hover:shadow-lg transition-all group"
+                  className="rounded-2xl border border-border/60 overflow-hidden bg-linear-to-br from-card to-accent/5 hover:shadow-lg transition-all group"
                 >
                   {post.image_url && (
                     <img
