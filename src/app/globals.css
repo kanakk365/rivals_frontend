@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-display: var(--font-syne);
+  --font-body: var(--font-inter);
+  --font-serif: var(--font-instrument-serif);
+  --font-inter: var(--font-inter);
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-geist-sans);
